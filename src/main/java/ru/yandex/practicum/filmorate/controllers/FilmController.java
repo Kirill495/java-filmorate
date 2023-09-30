@@ -54,7 +54,7 @@ public class FilmController {
   }
 
   @GetMapping
-  public List<Film> getFilms(){
+  public List<Film> getFilms() {
     log.trace("get film data");
     return new ArrayList<>(films.values());
   }

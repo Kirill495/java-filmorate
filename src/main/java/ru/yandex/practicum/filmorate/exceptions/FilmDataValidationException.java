@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.exceptions;
 
-public class FilmDataValidationException extends ValidationException{
+public class FilmDataValidationException extends ValidationException {
   public FilmDataValidationException() {
     this("Некорректные данные фильма");
   }
