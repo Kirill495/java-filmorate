@@ -19,7 +19,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/film")
+@RequestMapping("/films")
 public class FilmController {
 
   private static final int MAX_DESCRIPTION_LENGTH = 200;
