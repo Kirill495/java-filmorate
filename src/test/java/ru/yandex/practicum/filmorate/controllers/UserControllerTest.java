@@ -46,6 +46,7 @@ class UserControllerTest {
     controller.addUser(user);
     assertSame(user.getLogin(), user.getName());
   }
+
   @Test
   void addUserWithBlankNameShouldSetLoginAsName() {
     user.setName("   ");
@@ -138,6 +139,7 @@ class UserControllerTest {
                     .orElse(null));
 
   }
+
   @Test
   void updateUserWithEmptyIdShouldThrowException() {
     controller.addUser(user);

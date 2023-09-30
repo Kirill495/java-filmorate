@@ -26,8 +26,7 @@ class FilmControllerTest {
   }
 
   @Test
-  void CreateCorrectFilmShouldReturnTheSameFilmWithIDAndSaveFilmToStorage() {
-
+  void createCorrectFilmShouldReturnTheSameFilmWithIDAndSaveFilmToStorage() {
     Film returnedFilm = controller.addFilm(film);
     assertSame(film.getName(), returnedFilm.getName());
     assertSame(film.getDuration(), returnedFilm.getDuration());
@@ -38,7 +37,7 @@ class FilmControllerTest {
   }
 
   @Test
-  void CreateFilmWithBlankNameShouldFail() {
+  void createFilmWithBlankNameShouldFail() {
     film.setName("");
     FilmDataValidationException e = assertThrows(
             FilmDataValidationException.class,
@@ -47,7 +46,7 @@ class FilmControllerTest {
   }
 
   @Test
-  void CreateFilmWithTooLongDescriptionShouldThrowException() {
+  void createFilmWithTooLongDescriptionShouldThrowException() {
     String description = "____________________";
     StringBuilder filmDescription = new StringBuilder();
     for (int i = 0; i < 15; i++) {
@@ -61,7 +60,7 @@ class FilmControllerTest {
   }
 
   @Test
-  void CreateFilmWithTooEarlyReleaseDateShouldThrowException() {
+  void createFilmWithTooEarlyReleaseDateShouldThrowException() {
     film.setReleaseDate(LocalDate.of(1700,1, 1));
     FilmDataValidationException e = assertThrows(
             FilmDataValidationException.class,
@@ -73,7 +72,7 @@ class FilmControllerTest {
   }
 
   @Test
-  void CreateFilmWithZeroDurationShouldThrowException() {
+  void createFilmWithZeroDurationShouldThrowException() {
     film.setDuration(0);
     FilmDataValidationException e = assertThrows(
             FilmDataValidationException.class,
@@ -84,7 +83,7 @@ class FilmControllerTest {
   }
 
   @Test
-  void CreateFilmWithNegativeDurationShouldThrowException() {
+  void createFilmWithNegativeDurationShouldThrowException() {
     film.setDuration(-100);
     FilmDataValidationException e = assertThrows(
             FilmDataValidationException.class,
@@ -117,6 +116,7 @@ class FilmControllerTest {
     assertEquals(newFilm, returnedFilm);
     assertEquals(newFilm, controller.getFilms().get(0));
   }
+
   @Test
   void updateFilmWithNonExistingIdShouldThrowException() {
     film.setId(1);
@@ -127,6 +127,7 @@ class FilmControllerTest {
             "Неизвестный идентификатор фильма",
             e.getMessage());
   }
+
   @Test
   void updateFilmWithZeroIdShouldThrowException() {
     FilmDataValidationException e = assertThrows(
