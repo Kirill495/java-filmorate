@@ -5,12 +5,13 @@
 *.nar
 *.ear
 *.zip
+*.cmd
 *.tar.gz
 *.rar
 hs_err_pid*
 out/
 target/
-!.mvn/wrapper/maven-wrapper.jar
+.mvn/*
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -44,3 +45,4 @@ build/
 
 *.db
 db/*
+/.mvn/
