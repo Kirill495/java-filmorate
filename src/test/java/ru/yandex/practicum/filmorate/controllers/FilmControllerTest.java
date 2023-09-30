@@ -41,7 +41,7 @@ class FilmControllerTest {
     film.setName("");
     FilmDataValidationException e = assertThrows(
             FilmDataValidationException.class,
-            ( ) -> controller.addFilm(film));
+            () -> controller.addFilm(film));
     assertEquals("Название фильма не может быть пустым", e.getMessage());
   }
 
