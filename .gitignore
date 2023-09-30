@@ -5,6 +5,7 @@
 *.nar
 *.ear
 *.zip
+*.cmd
 *.tar.gz
 *.rar
 hs_err_pid*
