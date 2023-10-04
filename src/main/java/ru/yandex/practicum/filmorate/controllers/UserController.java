@@ -45,6 +45,7 @@ public class UserController {
     if (!users.containsKey(user.getId())) {
       throw new UserDataValidationException("Неизвестный идентификатор пользователя");
     }
+
     Validator dataValidator = new UserValidator(user);
     dataValidator.validate();
     users.put(user.getId(), user);

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exceptions.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+
 import ru.yandex.practicum.filmorate.validators.FilmValidator;
 import ru.yandex.practicum.filmorate.validators.Validator;
 
@@ -60,5 +61,4 @@ public class FilmController {
     log.trace("get film data");
     return new ArrayList<>(films.values());
   }
-
 }
