@@ -18,7 +18,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<logbook.version>2.16.0</logbook.version>
-		<maven.plugin.version>3.0.2</maven.plugin.version>
+		<maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+		<spring-boot.logging.version>0.1.0</spring-boot.logging.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -43,7 +44,7 @@
 		<dependency>
 			<groupId>io.github.goetschalckx</groupId>
 			<artifactId>spring-boot-logging-web</artifactId>
-			<version>0.1.0</version>
+			<version>${spring-boot.logging.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -52,7 +53,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>${maven.plugin.version}</version>
+				<version>${maven-resources-plugin.version}</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
