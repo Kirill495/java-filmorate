@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.time.LocalDate;
 
 @Slf4j
-public class FilmValidator implements Validator{
+public class FilmValidator implements Validator {
 
   private static final int MAX_DESCRIPTION_LENGTH = 200;
   private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);

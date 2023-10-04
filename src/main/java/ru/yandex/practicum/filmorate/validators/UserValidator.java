@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 
 @Slf4j
-public class UserValidator implements Validator{
+public class UserValidator implements Validator {
   User user;
 
   public UserValidator(User user) {
