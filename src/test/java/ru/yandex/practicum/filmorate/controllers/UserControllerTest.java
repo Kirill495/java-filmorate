@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controllers;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.UserDataValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -24,6 +25,8 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("После успешного добавления пользователя," +
+          "размер списка пользователей должен увеличиться на 1")
   void addUserShouldIncreaseUserListByOne() {
     int sizeBefore = controller.getUsers().size();
     controller.addUser(user);
@@ -31,16 +34,20 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("Метод добавления пользователя должен вернуть того же самого пользователя, только" +
+          "с заполненным id")
   void addUserShouldReturnTheSameUserWithId() {
     User returnedUser = controller.addUser(user);
     assertEquals(user.getLogin(), returnedUser.getLogin());
     assertEquals(user.getName(), returnedUser.getName());
     assertEquals(user.getBirthday(), returnedUser.getBirthday());
     assertEquals(user.getEmail(), returnedUser.getEmail());
-    assertNotEquals(1, returnedUser.getId());
+    assertNotEquals(0, returnedUser.getId());
   }
 
   @Test
+  @DisplayName("При добавлении пользователя с name==login, " +
+          "на место имени должен подставиться логин")
   void addUserWithEmptyNameShouldSetLoginAsName() {
     user.setName(null);
     controller.addUser(user);
@@ -48,6 +55,8 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("При добавлении пользователя с пустым именем, " +
+          "на место имени должен подставиться логин")
   void addUserWithBlankNameShouldSetLoginAsName() {
     user.setName("   ");
     controller.addUser(user);

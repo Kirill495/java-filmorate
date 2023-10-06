@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exceptions.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.LocalDate;
+import ru.yandex.practicum.filmorate.validators.FilmValidator;
+import ru.yandex.practicum.filmorate.validators.Validator;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,14 +24,14 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
-  private static final int MAX_DESCRIPTION_LENGTH = 200;
-  private static final LocalDate MIN_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-  Map<Integer, Film> films = new HashMap<>();
+  private final Map<Integer, Film> films = new HashMap<>();
 
   @PostMapping
   public Film addFilm(@RequestBody Film film) {
     log.debug("add new film {}", film);
-    filmDataValidation(film);
+    Validator validator = new FilmValidator(film);
+    validator.validate();
+
     int maxId = films.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
     film.setId(maxId + 1);
     films.put(film.getId(), film);
@@ -47,7 +49,8 @@ public class FilmController {
     if (!films.containsKey(film.getId())) {
       throw new FilmDataValidationException("Неизвестный идентификатор фильма");
     }
-
+    Validator validator = new FilmValidator(film);
+    validator.validate();
     films.put(film.getId(), film);
     log.debug("film updated successfully");
     return film;
@@ -57,21 +60,5 @@ public class FilmController {
   public List<Film> getFilms() {
     log.trace("get film data");
     return new ArrayList<>(films.values());
-  }
-
-  private static void filmDataValidation(Film film) {
-
-    if (film.getName() == null || film.getName().isBlank()) {
-      throw new FilmDataValidationException("Название фильма не может быть пустым");
-    }
-    if (film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-      throw new FilmDataValidationException("Описание фильма не может превышать 200 символов");
-    }
-    if (film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
-      throw new FilmDataValidationException(String.format("Дата релиза фильма должна быть ранее %s", MIN_RELEASE_DATE));
-    }
-    if (film.getDuration() <= 0) {
-      throw new FilmDataValidationException("Продолжительность фильма должна быть положительной");
-    }
   }
 }
