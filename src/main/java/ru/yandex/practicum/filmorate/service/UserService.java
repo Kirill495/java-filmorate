@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
   @Autowired
-  private UserStorage storage;
+  private final UserStorage storage;
 
   public UserService(UserStorage storage) {
     this.storage = storage;
