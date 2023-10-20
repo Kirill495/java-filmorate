@@ -24,6 +24,10 @@ public class UserController {
   @Autowired
   private UserService service;
 
+  public UserController(UserService service) {
+    this.service = service;
+  }
+
   @PostMapping
   public User addUser(@RequestBody User user) {
     log.debug("create new user: {}", user);
@@ -57,12 +61,12 @@ public class UserController {
     service.deleteFriend(id, friendId);
   }
 
-  @GetMapping("{id}/friends")
+  @GetMapping("/{id}/friends")
   public List<User> getFriends(@PathVariable int id) {
     return service.getFriends(id);
   }
 
-  @GetMapping("{id}/friends/common/{otherId}")
+  @GetMapping("/{id}/friends/common/{otherId}")
   public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
     return service.getCommonFriends(id, otherId);
   }

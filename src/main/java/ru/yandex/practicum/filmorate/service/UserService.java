@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.validators.UserValidator;
 import ru.yandex.practicum.filmorate.validators.Validator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,6 +19,10 @@ public class UserService {
 
   @Autowired
   private UserStorage storage;
+
+  public UserService(UserStorage storage) {
+    this.storage = storage;
+  }
 
   public User addUser(User user) {
     Validator dataValidator = new UserValidator(user);
@@ -87,11 +92,16 @@ public class UserService {
   public List<User> getCommonFriends(int id, int otherId) {
     User mainUser = getUserInner(id);
     User otherUser = getUserInner(otherId);
-    Set<Integer> mainUserFriends = Set.copyOf(mainUser.getFriends());
-    mainUserFriends.retainAll(otherUser.getFriends());
-    return mainUserFriends.stream()
-            .map(userId -> storage.getUser(userId))
-            .collect(Collectors.toList());
+
+    if (!otherUser.getFriends().isEmpty() && !mainUser.getFriends().isEmpty()) {
+      Set<Integer> mainUserFriends = new java.util.HashSet<>(Set.copyOf(mainUser.getFriends()));
+      mainUserFriends.retainAll(otherUser.getFriends());
+      return mainUserFriends.stream()
+              .map(userId -> storage.getUser(userId))
+              .collect(Collectors.toList());
+    } else {
+      return new ArrayList<>();
+    }
   }
   private User getUserInner(int id) {
     User user = storage.getUser(id);

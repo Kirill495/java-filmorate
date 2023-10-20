@@ -53,7 +53,7 @@ public class FilmService {
     Film film = getFilmInner(filmId);
     userService.getUser(userId);
     Set<Integer> likes = film.getLikes();
-    if (!likes.contains(userId)) {
+    if (likes.contains(userId)) {
       likes.remove(userId);
       storage.updateFilm(film);
       return true;
@@ -64,7 +64,7 @@ public class FilmService {
   public List<Film> getTheMostPopularFilms(int count) {
     return storage.getFilms()
             .stream()
-            .sorted(Comparator.comparingInt(film -> getFilms().size()))
+            .sorted(Comparator.comparingInt(film -> -film.getLikes().size()))
             .limit(count)
             .collect(Collectors.toList());
   }

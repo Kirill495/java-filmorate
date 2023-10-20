@@ -7,8 +7,11 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,7 +29,9 @@ class FilmControllerTest {
     film.setDescription("");
     film.setReleaseDate(LocalDate.now());
     FilmStorage filmStorage = new InMemoryFilmStorage();
-    FilmService filmService = new FilmService(filmStorage);
+    UserStorage userStorage = new InMemoryUserStorage();
+    UserService userService = new UserService(userStorage);
+    FilmService filmService = new FilmService(filmStorage, userService);
     controller = new FilmController(filmService);
 
   }
@@ -55,9 +60,7 @@ class FilmControllerTest {
   void createFilmWithTooLongDescriptionShouldThrowException() {
     String description = "____________________";
     StringBuilder filmDescription = new StringBuilder();
-    for (int i = 0; i < 15; i++) {
-      filmDescription.append(description);
-    }
+    filmDescription.append(description.repeat(15));
     film.setDescription(filmDescription.toString());
     FilmDataValidationException e = assertThrows(
             FilmDataValidationException.class,
