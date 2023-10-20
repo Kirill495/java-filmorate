@@ -83,12 +83,14 @@ public class UserService {
       storage.updateUser(friend);
     }
   }
+
   public List<User> getFriends(int id) {
     User user = getUserInner(id);
     return user.getFriends().stream()
             .map(storage::getUser)
             .collect(Collectors.toList());
   }
+
   public List<User> getCommonFriends(int id, int otherId) {
     User mainUser = getUserInner(id);
     User otherUser = getUserInner(otherId);
@@ -103,6 +105,7 @@ public class UserService {
       return new ArrayList<>();
     }
   }
+
   private User getUserInner(int id) {
     User user = storage.getUser(id);
     if (user == null) {
