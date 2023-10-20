@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.validators.UserValidator;
 import ru.yandex.practicum.filmorate.validators.Validator;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,7 +84,15 @@ public class UserService {
             .map(storage::getUser)
             .collect(Collectors.toList());
   }
-
+  public List<User> getCommonFriends(int id, int otherId) {
+    User mainUser = getUserInner(id);
+    User otherUser = getUserInner(otherId);
+    Set<Integer> mainUserFriends = Set.copyOf(mainUser.getFriends());
+    mainUserFriends.retainAll(otherUser.getFriends());
+    return mainUserFriends.stream()
+            .map(userId -> storage.getUser(userId))
+            .collect(Collectors.toList());
+  }
   private User getUserInner(int id) {
     User user = storage.getUser(id);
     if (user == null) {
@@ -91,4 +100,5 @@ public class UserService {
     }
     return user;
   }
+
 }
