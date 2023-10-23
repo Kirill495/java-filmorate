@@ -13,10 +13,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
-  @Autowired
+
   private final FilmStorage storage;
   private final UserService userService;
 
+  @Autowired
   public FilmService(FilmStorage storage, UserService userService) {
     this.storage = storage;
     this.userService = userService;
@@ -38,7 +39,7 @@ public class FilmService {
     return storage.getFilms();
   }
 
-  public boolean addLikeToTheFilm(int filmId, int userId) {
+  public boolean addLikeFilm(int filmId, int userId) {
     Film film = getFilmInner(filmId);
     userService.getUser(userId);
     Set<Integer> likes = film.getLikes();
@@ -50,7 +51,7 @@ public class FilmService {
     return false;
   }
 
-  public boolean removeLikeFromTheFilm(int filmId, int userId) {
+  public boolean removeLikeFromFilm(int filmId, int userId) {
     Film film = getFilmInner(filmId);
     userService.getUser(userId);
     Set<Integer> likes = film.getLikes();

@@ -25,9 +25,9 @@ import java.util.List;
 @RequestMapping("/films")
 public class FilmController {
 
-  @Autowired
   private final FilmService service;
 
+  @Autowired
   public FilmController(FilmService service) {
     this.service = service;
   }
@@ -55,13 +55,13 @@ public class FilmController {
   }
 
   @PutMapping("/{id}/like/{userId}")
-  public boolean addLikeToTheFilm(@PathVariable("id") int filmId, @PathVariable int userId) {
-    return service.addLikeToTheFilm(filmId, userId);
+  public boolean addLikeFilm(@PathVariable("id") int filmId, @PathVariable int userId) {
+    return service.addLikeFilm(filmId, userId);
   }
 
   @DeleteMapping("/{id}/like/{userId}")
-  public boolean removeLikeFromTheFilm(@PathVariable("id") int filmId, @PathVariable int userId) {
-    return service.removeLikeFromTheFilm(filmId, userId);
+  public boolean removeLikeFilm(@PathVariable("id") int filmId, @PathVariable int userId) {
+    return service.removeLikeFromFilm(filmId, userId);
   }
 
   @GetMapping("/popular")

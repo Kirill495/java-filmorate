@@ -19,7 +19,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
   @Override
   public Film addFilm(Film film) {
-
     log.debug("add new film {}", film);
     int maxId = films.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
     film.setId(maxId + 1);
@@ -30,7 +29,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
   @Override
   public Film updateFilm(Film film) {
-
     log.debug("update film {}", film);
     int filmId = film.getId();
     if (filmId == 0) {
