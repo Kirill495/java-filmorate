@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validators.FilmValidator;
 import ru.yandex.practicum.filmorate.validators.Validator;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -33,14 +34,14 @@ public class FilmController {
   }
 
   @PostMapping
-  public Film addFilm(@RequestBody Film film) {
+  public Film addFilm(@Valid @RequestBody Film film) {
     Validator validator = new FilmValidator(film);
     validator.validate();
     return service.addFilm(film);
   }
 
   @PutMapping
-  public Film updateFilm(@RequestBody Film film) {
+  public Film updateFilm(@Valid @RequestBody Film film) {
     return service.updateFilm(film);
   }
 
