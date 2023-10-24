@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
+import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
@@ -150,7 +151,7 @@ class UserControllerTest {
             .andExpect(content().json(
                     objectMapper
                             .writeValueAsString(
-                                    Map.of("email", "e-mail не должен быть пустым"))));
+                                    Map.of("email", "это не e-mail"))));
   }
 
   @Test
@@ -222,8 +223,8 @@ class UserControllerTest {
     newUser.setName("NewUserName");
     newUser.setEmail("newUser@email.org");
     newUser.setLogin("newUserLogin");
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
+    UserNotFoundException e = assertThrows(
+            UserNotFoundException.class,
             () -> controller.updateUser(newUser));
     assertEquals("Неизвестный идентификатор пользователя", e.getMessage());
   }

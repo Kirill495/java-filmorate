@@ -16,7 +16,7 @@ import java.util.Set;
 @Component
 public class User {
   private int id;
-  @NotBlank(message = "e-mail не должен быть пустым")
+  @NotNull(message = "e-mail не должен быть пустым")
   @Email(message = "это не e-mail")
   private String email;
   @NotNull(message = "Логин не должен быть пустым")
