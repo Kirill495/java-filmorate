@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.validators.FilmValidator;
-import ru.yandex.practicum.filmorate.validators.Validator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,8 +35,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     if (!films.containsKey(film.getId())) {
       throw new FilmDataValidationException("Неизвестный идентификатор фильма");
     }
-    Validator validator = new FilmValidator(film);
-    validator.validate();
     films.put(filmId, film);
     log.debug("film updated successfully");
     return film;

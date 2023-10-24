@@ -6,8 +6,6 @@ import ru.yandex.practicum.filmorate.exceptions.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
-import ru.yandex.practicum.filmorate.validators.UserValidator;
-import ru.yandex.practicum.filmorate.validators.Validator;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,14 +24,12 @@ public class UserService {
   }
 
   public User addUser(User user) {
-    Validator dataValidator = new UserValidator(user);
-    dataValidator.validate();
+    fillInUserName(user);
     return storage.addUser(user);
   }
 
   public User updateUser(User user) {
-    Validator dataValidator = new UserValidator(user);
-    dataValidator.validate();
+    fillInUserName(user);
     if (user.getId() == 0) {
       throw new UserDataValidationException("Идентификатор пользователя не может быть пустым");
     }
@@ -117,4 +113,9 @@ public class UserService {
     return user;
   }
 
+  private void fillInUserName(User user) {
+    if (user.getName().isBlank()) {
+      user.setName(user.getLogin());
+    }
+  }
 }
