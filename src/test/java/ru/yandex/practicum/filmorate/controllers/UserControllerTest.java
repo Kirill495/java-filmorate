@@ -150,7 +150,7 @@ class UserControllerTest {
             .andExpect(content().json(
                     objectMapper
                             .writeValueAsString(
-                                    Map.of("email", "это не e-mail"))));
+                                    Map.of("email", "e-mail не должен быть пустым"))));
   }
 
   @Test
