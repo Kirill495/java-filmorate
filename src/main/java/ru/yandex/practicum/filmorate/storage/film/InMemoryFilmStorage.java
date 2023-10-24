@@ -2,7 +2,8 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.FilmDataValidationException;
+import ru.yandex.practicum.filmorate.exceptions.film.FilmDataValidationException;
+import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
@@ -32,8 +33,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     if (filmId == 0) {
       throw new FilmDataValidationException("Идентификатор фильма не может быть пустым");
     }
-    if (!films.containsKey(film.getId())) {
-      throw new FilmDataValidationException("Неизвестный идентификатор фильма");
+    if (!films.containsKey(filmId)) {
+      throw new FilmNotFoundException(filmId);
     }
     films.put(filmId, film);
     log.debug("film updated successfully");

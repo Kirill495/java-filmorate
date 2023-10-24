@@ -1,4 +1,6 @@
-package ru.yandex.practicum.filmorate.exceptions;
+package ru.yandex.practicum.filmorate.exceptions.film;
+
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
 public class FilmDataValidationException extends ValidationException {
   public FilmDataValidationException() {

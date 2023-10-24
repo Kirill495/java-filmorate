@@ -1,18 +1,36 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exceptions.UserDataValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
+import java.util.Map;
 
+@AutoConfigureMockMvc
+@SpringBootTest
 class UserControllerTest {
+
+  @Autowired
+  private MockMvc mvc;
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   UserController controller;
   User user;
@@ -71,66 +89,94 @@ class UserControllerTest {
   }
 
   @Test
-  void addUserWithEmptyLoginShouldThrowException() {
+  void addUserWithEmptyLoginShouldThrowException() throws Exception {
     user.setLogin("");
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Логин не может быть пустым или содержать пробелы", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("login", "Логин не должен быть пустым или содержать пробелы"))));
   }
 
   @Test
-  void addUserWithNullLoginShouldThrowException() {
+  void addUserWithNullLoginShouldThrowException() throws Exception {
     user.setLogin(null);
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Логин не может быть пустым или содержать пробелы", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("login", "Логин не должен быть пустым"))));
   }
 
   @Test
-  void addUserWithLoginWithWhitespacesShouldThrowException() {
+  void addUserWithLoginWithWhitespacesShouldThrowException() throws Exception {
     user.setLogin("l o g i n");
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Логин не может быть пустым или содержать пробелы", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("login", "Логин не должен быть пустым или содержать пробелы"))));
   }
 
   @Test
-  void addUserWithEmailWithout_a_ShouldThrowException() {
+  void addUserWithEmailWithout_a_ShouldThrowException() throws Exception {
     user.setEmail("email");
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Email пустой или не содержит \"@\"", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("email", "это не e-mail"))));
   }
 
   @Test
-  void addUserWithBlankEmailShouldThrowException() {
+  void addUserWithBlankEmailShouldThrowException() throws Exception {
     user.setEmail("  ");
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Email пустой или не содержит \"@\"", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("email", "это не e-mail"))));
   }
 
   @Test
-  void addUserWithNullEmailShouldThrowException() {
+  void addUserWithNullEmailShouldThrowException() throws Exception {
     user.setEmail(null);
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Email пустой или не содержит \"@\"", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("email", "e-mail не должен быть пустым"))));
   }
 
   @Test
-  void addUserWithIncorrectBirthdayShouldThrowException() {
+  void addUserWithIncorrectBirthdayShouldThrowException() throws Exception {
     user.setBirthday(LocalDate.now().plusDays(1));
-    UserDataValidationException e = assertThrows(
-            UserDataValidationException.class,
-            () -> controller.addUser(user));
-    assertSame("Дата рождения не может быть больше текущей даты", e.getMessage());
+    mvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(user)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("birthday", "Дата рождения не может быть больше текущей даты"))));
   }
 
   @Test

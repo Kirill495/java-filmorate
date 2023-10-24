@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.UserDataValidationException;
+import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -114,7 +114,7 @@ public class UserService {
   }
 
   private void fillInUserName(User user) {
-    if (user.getName().isBlank()) {
+    if (user.getName() == null || user.getName().isBlank()) {
       user.setName(user.getLogin());
     }
   }
