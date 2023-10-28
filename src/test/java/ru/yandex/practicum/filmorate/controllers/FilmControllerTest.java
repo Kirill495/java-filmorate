@@ -1,28 +1,60 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import ru.yandex.practicum.filmorate.exceptions.FilmDataValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
+@AutoConfigureMockMvc
+@SpringBootTest
 class FilmControllerTest {
+
+  @Autowired
+  private MockMvc mvc;
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   private FilmController controller;
   private Film film;
 
   @BeforeEach
   void setUp() {
+
     film = new Film();
     film.setName("ААА");
     film.setDuration(100);
     film.setDescription("");
     film.setReleaseDate(LocalDate.now());
-    controller = new FilmController();
+
+    FilmStorage filmStorage = new InMemoryFilmStorage();
+    UserStorage userStorage = new InMemoryUserStorage();
+    UserService userService = new UserService(userStorage);
+    FilmService filmService = new FilmService(filmStorage, userService);
+    controller = new FilmController(filmService);
+
   }
 
   @Test
@@ -37,60 +69,78 @@ class FilmControllerTest {
   }
 
   @Test
-  void createFilmWithBlankNameShouldFail() {
+  void createFilmWithBlankNameShouldFail() throws Exception {
     film.setName("");
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.addFilm(film));
-    assertEquals("Название фильма не может быть пустым", e.getMessage());
+    String body = objectMapper.writeValueAsString(film);
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/films")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body);
+    mvc.perform(builder)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("name", "Название фильма не может быть пустым"))));
   }
 
+
+
   @Test
-  void createFilmWithTooLongDescriptionShouldThrowException() {
+  void createFilmWithTooLongDescriptionShouldThrowException() throws Exception {
     String description = "____________________";
-    StringBuilder filmDescription = new StringBuilder();
-    for (int i = 0; i < 15; i++) {
-      filmDescription.append(description);
-    }
-    film.setDescription(filmDescription.toString());
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.addFilm(film));
-    assertEquals("Описание фильма не может превышать 200 символов", e.getMessage());
+    film.setDescription(description.repeat(15));
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/films")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(film));
+    mvc.perform(builder)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("description", "Описание фильма не может превышать 200 символов"))));
   }
 
   @Test
-  void createFilmWithTooEarlyReleaseDateShouldThrowException() {
+  void createFilmWithTooEarlyReleaseDateShouldThrowException() throws Exception {
     film.setReleaseDate(LocalDate.of(1700,1, 1));
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.addFilm(film));
-    assertEquals(
-            String.format("Дата релиза фильма должна быть ранее %s",
-                    LocalDate.of(1895, 12, 28)),
-            e.getMessage());
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/films")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(film));
+    mvc.perform(builder)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("releaseDate", "Дата релиза должна быть позже 1895-12-28"))));
   }
 
   @Test
-  void createFilmWithZeroDurationShouldThrowException() {
+  void createFilmWithZeroDurationShouldThrowException() throws Exception {
     film.setDuration(0);
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.addFilm(film));
-    assertEquals(
-            "Продолжительность фильма должна быть положительной",
-            e.getMessage());
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/films")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(film));
+    mvc.perform(builder)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("duration", "Продолжительность фильма должна быть положительной"))));
+
   }
 
   @Test
-  void createFilmWithNegativeDurationShouldThrowException() {
+  void createFilmWithNegativeDurationShouldThrowException() throws Exception {
     film.setDuration(-100);
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.addFilm(film));
-    assertEquals(
-            "Продолжительность фильма должна быть положительной",
-            e.getMessage());
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post("/films")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(film));
+    mvc.perform(builder)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("duration", "Продолжительность фильма должна быть положительной"))));
   }
 
   @Test
@@ -108,33 +158,38 @@ class FilmControllerTest {
     Film newFilm = new Film();
     newFilm.setId(filmId);
     newFilm.setName("updateFilmShouldChangeFilmInfo");
-    newFilm.setDescription("new film decription");
+    newFilm.setDescription("new film description");
     newFilm.setDuration(3600);
     newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
-
     Film returnedFilm = controller.updateFilm(newFilm);
     assertEquals(newFilm, returnedFilm);
     assertEquals(newFilm, controller.getFilms().get(0));
   }
 
   @Test
-  void updateFilmWithNonExistingIdShouldThrowException() {
+  void updateFilmWithNonExistingIdShouldThrowException() throws Exception {
     film.setId(1);
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.updateFilm(film));
-    assertEquals(
-            "Неизвестный идентификатор фильма",
-            e.getMessage());
+    mvc.perform(
+        MockMvcRequestBuilders
+                .put("/films")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(film)))
+      .andExpect(status().isNotFound())
+      .andExpect(content().json(
+              objectMapper.writeValueAsString(
+                      Map.of("error", "Фильм с id 1 не найден"))));
   }
 
   @Test
-  void updateFilmWithZeroIdShouldThrowException() {
-    FilmDataValidationException e = assertThrows(
-            FilmDataValidationException.class,
-            () -> controller.updateFilm(film));
-    assertEquals(
-            "Идентификатор фильма не может быть пустым",
-            e.getMessage());
+  void updateFilmWithZeroIdShouldThrowException() throws Exception {
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put("/films")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(film));
+    mvc.perform(builder)
+            .andExpect(status().isBadRequest())
+            .andExpect(content().json(
+                    objectMapper
+                            .writeValueAsString(
+                                    Map.of("error", "Идентификатор фильма не может быть пустым"))));
   }
 }
