@@ -61,4 +61,10 @@ public class ErrorHandler {
     return error;
   }
 
+  @ExceptionHandler(RuntimeException.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  public Map<String, String> handleCommonException(final RuntimeException exception) {
+    return Map.of("error", exception.getMessage());
+  }
+
 }
