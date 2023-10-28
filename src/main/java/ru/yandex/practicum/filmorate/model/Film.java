@@ -23,5 +23,7 @@ public class Film {
   private LocalDate releaseDate;
   @Positive(message = "Продолжительность фильма должна быть положительной")
   private int duration;
-  private Set<Integer> likes = new HashSet<>();
+  private Set<User> likes = new HashSet<>();
+  private Set<Genre> genres = new HashSet<>();
+  private MPARating rating;
 }
