@@ -103,7 +103,7 @@ public class FilmDbStorage implements FilmStorage {
                     "WHERE\n" +
                     "    movies.movie_id = :movie_id\n" +
                     "LIMIT 1";
-    List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(sqlQuery, Map.of("movie_id", id), (rs, rowNum) ->createNewFilm(rs));
+    List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(sqlQuery, Map.of("movie_id", id), (rs, rowNum) -> createNewFilm(rs));
     if (films.size() == 0) {
       return null;
     }
@@ -120,12 +120,16 @@ public class FilmDbStorage implements FilmStorage {
     jdbcTemplate.update("DELETE FROM MOVIES_GENRES WHERE movie_id = ?", filmId);
     String sqlQuery = "INSERT INTO MOVIES_GENRES VALUES (?, ?)";
     film.getGenres()
-            .forEach(genre->{jdbcTemplate.update(sqlQuery, filmId, genre.getId());});
+            .forEach(genre-> {
+              jdbcTemplate.update(sqlQuery, filmId, genre.getId());
+            });
   }
   private void updateLikes(Set<Integer> likes, int filmId) {
     jdbcTemplate.update("DELETE FROM MOVIES_LIKES WHERE movie_id = ?", filmId);
     String sqlQuery = "INSERT INTO MOVIES_LIKES VALUES (?, ?)";
-    likes.forEach(userId ->{jdbcTemplate.update(sqlQuery, filmId, userId);});
+    likes.forEach(userId -> {
+      jdbcTemplate.update(sqlQuery, filmId, userId);
+    });
   }
   private Film createNewFilm(ResultSet resultSet)  {
     MPA ratingItem = null;
