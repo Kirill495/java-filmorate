@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MPADao;
@@ -24,11 +25,11 @@ public class MPADaoImpl implements MPADao {
     @Override
     public MPA findMPARatingById(int id) {
         String sqlQuery = "SELECT rating_id, title, description FROM MPA_RATING WHERE rating_id = ?";
-        return jdbcTemplate.queryForStream(sqlQuery, this::mapRowToRating, id)
-                .findFirst()
-                .orElseThrow(() -> {
-                    throw new MPANotFoundException(id);
-                });
+        try {
+            return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new MPANotFoundException(id);
+        }
     }
 
     @Override

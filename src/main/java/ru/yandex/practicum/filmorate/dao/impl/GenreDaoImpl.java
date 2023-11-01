@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
@@ -23,12 +24,11 @@ public class GenreDaoImpl implements GenreDao {
     @Override
     public Genre findGenreById(int id) {
         String sqlQuery = "SELECT genre_id, title FROM genres WHERE genre_id = ?";
-        return jdbcTemplate
-                .queryForStream(sqlQuery, this::mapRowToGenre, id)
-                .findFirst()
-                .orElseThrow(() -> {
-                    throw new GenreNotFoundException(id);
-                });
+        try {
+            return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenre, id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new GenreNotFoundException(id);
+        }
     }
 
     @Override
