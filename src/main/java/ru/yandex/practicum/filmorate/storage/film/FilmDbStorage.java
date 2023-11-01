@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
   private final JdbcTemplate jdbcTemplate;
+
   public FilmDbStorage(JdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;
   }
@@ -120,10 +121,11 @@ public class FilmDbStorage implements FilmStorage {
     jdbcTemplate.update("DELETE FROM MOVIES_GENRES WHERE movie_id = ?", filmId);
     String sqlQuery = "INSERT INTO MOVIES_GENRES VALUES (?, ?)";
     film.getGenres()
-            .forEach(genre-> {
+            .forEach(genre -> {
               jdbcTemplate.update(sqlQuery, filmId, genre.getId());
             });
   }
+
   private void updateLikes(Set<Integer> likes, int filmId) {
     jdbcTemplate.update("DELETE FROM MOVIES_LIKES WHERE movie_id = ?", filmId);
     String sqlQuery = "INSERT INTO MOVIES_LIKES VALUES (?, ?)";
@@ -131,9 +133,9 @@ public class FilmDbStorage implements FilmStorage {
       jdbcTemplate.update(sqlQuery, filmId, userId);
     });
   }
+
   private Film createNewFilm(ResultSet resultSet)  {
     MPA ratingItem = null;
-
     try {
       if (resultSet.getInt("rating_id") != 0) {
         ratingItem = new MPA();
@@ -170,7 +172,6 @@ public class FilmDbStorage implements FilmStorage {
   }
 
   private List<Film> getFilmsWithRating(int count) {
-
     String sqlQuery = String.format("SELECT\n" +
             "    movies.movie_id as id,\n" +
             "    movies.title AS movie_title,\n" +
@@ -217,7 +218,6 @@ public class FilmDbStorage implements FilmStorage {
   }
 
   private void fillInGenres(List<Film> films) {
-
     List<Integer> filmsIds = films.stream()
             .mapToInt(Film::getId).boxed()
             .collect(Collectors.toList());
@@ -228,7 +228,6 @@ public class FilmDbStorage implements FilmStorage {
             "WHERE movies.movie_id in (:ids);";
     SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate).queryForRowSet(sqlQuery, parameters);
 
-//    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sqlQuery, filmsIds);
     while (rowSet.next()) {
       int movieId = rowSet.getInt("movie_id");
       films.stream()
@@ -244,7 +243,6 @@ public class FilmDbStorage implements FilmStorage {
   }
 
   private void fillInLikes(List<Film> films) {
-
     List<Integer> filmsIds = films.stream()
             .mapToInt(Film::getId).boxed()
             .collect(Collectors.toList());

@@ -139,7 +139,6 @@ public class UserDbStorage implements UserStorage {
   }
 
   private User createNewUser(ResultSet resultSet) {
-
     User user = new User();
 
     try {
