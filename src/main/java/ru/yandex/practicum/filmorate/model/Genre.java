@@ -1,10 +1,10 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import org.springframework.stereotype.Component;
+import lombok.NoArgsConstructor;
 
 @Data
-@Component
+@NoArgsConstructor
 public class Genre {
     private int id;
     private String name;

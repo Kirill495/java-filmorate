@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import org.springframework.stereotype.Component;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@Component
+@NoArgsConstructor
 public class User {
     private int id;
     @NotNull(message = "e-mail не должен быть пустым")
@@ -26,6 +26,4 @@ public class User {
     private LocalDate birthday;
     private Set<UserRelation> relations = new HashSet<>();
 
-    public User() {
-    }
 }

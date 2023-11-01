@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
-import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.validators.releaseFilmDate.ReleaseFilmDate;
 
 import javax.validation.constraints.NotBlank;
@@ -13,9 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-
 @Data
-@Component
 public class Film {
     private int id;
     @NotBlank(message = "Название фильма не может быть пустым")
