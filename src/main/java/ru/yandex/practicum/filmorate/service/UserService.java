@@ -1,16 +1,17 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.UserRelation;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,7 +20,7 @@ public class UserService {
   private final UserStorage storage;
 
   @Autowired
-  public UserService(UserStorage storage) {
+  public UserService(@Qualifier("UserDbStorage") UserStorage storage) {
     this.storage = storage;
   }
 
@@ -50,40 +51,34 @@ public class UserService {
   }
 
   public void addFriend(int userId, int friendId) {
-    User user = storage.getUser(userId);
-    User friend = storage.getUser(friendId);
-    if (user == null) {
-      throw new UserNotFoundException(userId);
+    
+    User user = getUserInner(userId);
+    User friend = getUserInner(friendId);
+
+    Set<UserRelation> relations = user.getRelations();
+    Predicate<UserRelation> counterRequestIsAlreadySent = r -> ((r.getApproverId() == userId && r.getRequesterId() == friendId));
+    Predicate<UserRelation> requestIsAlreadySent = r -> ((r.getRequesterId() == userId && r.getApproverId() == friendId));
+    if (relations.stream().anyMatch(counterRequestIsAlreadySent)) {
+      // запрос уже был отправлен с противоположной стороны
+      storage.updateUserRelations(user, friend, true);
     }
-    if (friend == null) {
-      throw new UserNotFoundException(friendId);
+
+    if (relations.stream().noneMatch(requestIsAlreadySent)) {
+      storage.updateUserRelations(user, friend, false);
     }
-    if (!user.getFriends().contains(friendId)) {
-      user.getFriends().add(friendId);
-      storage.updateUser(user);
-    }
-    if (!friend.getFriends().contains(userId)) {
-      friend.getFriends().add(userId);
-      storage.updateUser(friend);
-    }
+
   }
 
   public void deleteFriend(int userId, int friendId) {
     User user = getUserInner(userId);
     User friend = getUserInner(friendId);
-    if (user.getFriends().contains(friendId)) {
-      user.getFriends().remove(friendId);
-      storage.updateUser(user);
-    }
-    if (friend.getFriends().contains(userId)) {
-      friend.getFriends().remove(userId);
-      storage.updateUser(friend);
-    }
+    storage.removeUserRelations(user, friend);
   }
 
   public List<User> getFriends(int id) {
     User user = getUserInner(id);
-    return user.getFriends().stream()
+    return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
+            .map(r->((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
             .map(storage::getUser)
             .collect(Collectors.toList());
   }
@@ -92,17 +87,8 @@ public class UserService {
     User mainUser = getUserInner(id);
     User otherUser = getUserInner(otherId);
 
-    boolean firstUserHasFriends = !otherUser.getFriends().isEmpty();
-    boolean secondUserHasFriends = !mainUser.getFriends().isEmpty();
-    if (firstUserHasFriends && secondUserHasFriends) {
-      Set<Integer> mainUserFriends = new HashSet<>(Set.copyOf(mainUser.getFriends()));
-      mainUserFriends.retainAll(otherUser.getFriends());
-      return mainUserFriends.stream()
-              .map(storage::getUser)
-              .collect(Collectors.toList());
-    } else {
-      return Collections.emptyList();
-    }
+    return storage.getCommonFriends(mainUser, otherUser);
+
   }
 
   private User getUserInner(int id) {

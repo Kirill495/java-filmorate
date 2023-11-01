@@ -1,15 +1,14 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -18,7 +17,7 @@ public class FilmService {
   private final UserService userService;
 
   @Autowired
-  public FilmService(FilmStorage storage, UserService userService) {
+  public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService) {
     this.storage = storage;
     this.userService = userService;
   }
@@ -64,11 +63,7 @@ public class FilmService {
   }
 
   public List<Film> getTheMostPopularFilms(int count) {
-    return storage.getFilms()
-            .stream()
-            .sorted(Comparator.comparingInt(film -> -film.getLikes().size()))
-            .limit(count)
-            .collect(Collectors.toList());
+    return storage.getTheMostPopularFilms(count);
   }
 
   private Film getFilmInner(int id) {

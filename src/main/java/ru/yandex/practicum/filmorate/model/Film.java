@@ -8,8 +8,11 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+
 
 @Data
 @Component
@@ -23,7 +26,15 @@ public class Film {
   private LocalDate releaseDate;
   @Positive(message = "Продолжительность фильма должна быть положительной")
   private int duration;
-  private Set<User> likes = new HashSet<>();
+  private Set<Integer> likes = new HashSet<>();
   private Set<Genre> genres = new HashSet<>();
-  private MPARating rating;
+  private MPA mpa;
+
+  public Map<String, Object> toMap() {
+    return Map.of("title", name,
+            "description", description,
+            "release_date", releaseDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+            "duration", duration,
+            "rating", mpa ==null ? 0 : mpa.getId());
+  }
 }

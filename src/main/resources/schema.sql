@@ -1,3 +1,11 @@
+DROP TABLE IF EXISTS movies_likes;
+DROP TABLE IF EXISTS movies_genres;
+DROP TABLE IF EXISTS user_relations;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS movies;
+DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS mpa_rating;
+
 CREATE TABLE IF NOT EXISTS mpa_rating (
     rating_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title VARCHAR NOT NULL,
@@ -33,10 +41,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS user_relations (
-    first_friend_id INT REFERENCES users(user_id),
-    second_friend_id INT REFERENCES users(user_id),
+    requester_id INT REFERENCES users(user_id),
+    approver_id INT REFERENCES users(user_id),
     accepted boolean NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (first_friend_id, second_friend_id)
+    PRIMARY KEY (requester_id, approver_id)
 );
 
 CREATE TABLE IF NOT EXISTS movies_likes (

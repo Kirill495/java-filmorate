@@ -10,8 +10,13 @@ public interface UserStorage {
 
   User updateUser(User user);
 
+  void updateUserRelations(User requester, User approver, boolean accepted);
+
+  void removeUserRelations(User firstUser, User secondUser);
+
   List<User> getUsers();
 
   User getUser(int id);
 
+  List<User> getCommonFriends(User mainUser, User otherUser);
 }
