@@ -12,12 +12,12 @@ import java.lang.annotation.Retention;
 @Documented
 public @interface ReleaseFilmDate {
 
-  String message() default "{ReleaseFilmDate.invalid}";
+    String message() default "{ReleaseFilmDate.invalid}";
 
-  Class<?>[] groups() default  { };
+    Class<?>[] groups() default {};
 
-  Class<? extends Payload>[] payload() default { };
+    Class<? extends Payload>[] payload() default {};
 
-  String minDate() default "1895-12-28";
+    String minDate() default "1895-12-28";
 
 }

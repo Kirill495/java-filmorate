@@ -17,86 +17,86 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-  private final UserStorage storage;
+    private final UserStorage storage;
 
-  @Autowired
-  public UserService(@Qualifier("UserDbStorage") UserStorage storage) {
-    this.storage = storage;
-  }
-
-  public User addUser(User user) {
-    fillInUserName(user);
-    return storage.addUser(user);
-  }
-
-  public User updateUser(User user) {
-    fillInUserName(user);
-    if (user.getId() == 0) {
-      throw new UserDataValidationException("Идентификатор пользователя не может быть пустым");
+    @Autowired
+    public UserService(@Qualifier("UserDbStorage") UserStorage storage) {
+        this.storage = storage;
     }
 
-    return storage.updateUser(user);
-  }
-
-  public List<User> getUsers() {
-    return storage.getUsers();
-  }
-
-  public User getUser(int id) {
-    User user = storage.getUser(id);
-    if (user == null) {
-      throw new UserNotFoundException(id);
+    public User addUser(User user) {
+        fillInUserName(user);
+        return storage.addUser(user);
     }
-    return user;
-  }
 
-  public void addFriend(int userId, int friendId) {
-    User user = getUserInner(userId);
-    User friend = getUserInner(friendId);
-    Set<UserRelation> relations = user.getRelations();
-    Predicate<UserRelation> counterRequestIsAlreadySent = r -> ((r.getApproverId() == userId && r.getRequesterId() == friendId));
-    Predicate<UserRelation> requestIsAlreadySent = r -> ((r.getRequesterId() == userId && r.getApproverId() == friendId));
-    if (relations.stream().anyMatch(counterRequestIsAlreadySent)) {
-      // запрос уже был отправлен с противоположной стороны
-      storage.updateUserRelations(user, friend, true);
+    public User updateUser(User user) {
+        fillInUserName(user);
+        if (user.getId() == 0) {
+            throw new UserDataValidationException("Идентификатор пользователя не может быть пустым");
+        }
+
+        return storage.updateUser(user);
     }
-    if (relations.stream().noneMatch(requestIsAlreadySent)) {
-      storage.updateUserRelations(user, friend, false);
+
+    public List<User> getUsers() {
+        return storage.getUsers();
     }
-  }
 
-  public void deleteFriend(int userId, int friendId) {
-    User user = getUserInner(userId);
-    User friend = getUserInner(friendId);
-    storage.removeUserRelations(user, friend);
-  }
-
-  public List<User> getFriends(int id) {
-    User user = getUserInner(id);
-    return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
-            .map(r -> ((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
-            .map(storage::getUser)
-            .collect(Collectors.toList());
-  }
-
-  public List<User> getCommonFriends(int id, int otherId) {
-    User mainUser = getUserInner(id);
-    User otherUser = getUserInner(otherId);
-
-    return storage.getCommonFriends(mainUser, otherUser);
-  }
-
-  private User getUserInner(int id) {
-    User user = storage.getUser(id);
-    if (user == null) {
-      throw new UserNotFoundException(id);
+    public User getUser(int id) {
+        User user = storage.getUser(id);
+        if (user == null) {
+            throw new UserNotFoundException(id);
+        }
+        return user;
     }
-    return user;
-  }
 
-  private void fillInUserName(User user) {
-    if (user.getName() == null || user.getName().isBlank()) {
-      user.setName(user.getLogin());
+    public void addFriend(int userId, int friendId) {
+        User user = getUserInner(userId);
+        User friend = getUserInner(friendId);
+        Set<UserRelation> relations = user.getRelations();
+        Predicate<UserRelation> counterRequestIsAlreadySent = r -> ((r.getApproverId() == userId && r.getRequesterId() == friendId));
+        Predicate<UserRelation> requestIsAlreadySent = r -> ((r.getRequesterId() == userId && r.getApproverId() == friendId));
+        if (relations.stream().anyMatch(counterRequestIsAlreadySent)) {
+            // запрос уже был отправлен с противоположной стороны
+            storage.updateUserRelations(user, friend, true);
+        }
+        if (relations.stream().noneMatch(requestIsAlreadySent)) {
+            storage.updateUserRelations(user, friend, false);
+        }
     }
-  }
+
+    public void deleteFriend(int userId, int friendId) {
+        User user = getUserInner(userId);
+        User friend = getUserInner(friendId);
+        storage.removeUserRelations(user, friend);
+    }
+
+    public List<User> getFriends(int id) {
+        User user = getUserInner(id);
+        return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
+                .map(r -> ((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
+                .map(storage::getUser)
+                .collect(Collectors.toList());
+    }
+
+    public List<User> getCommonFriends(int id, int otherId) {
+        User mainUser = getUserInner(id);
+        User otherUser = getUserInner(otherId);
+
+        return storage.getCommonFriends(mainUser, otherUser);
+    }
+
+    private User getUserInner(int id) {
+        User user = storage.getUser(id);
+        if (user == null) {
+            throw new UserNotFoundException(id);
+        }
+        return user;
+    }
+
+    private void fillInUserName(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+    }
 }

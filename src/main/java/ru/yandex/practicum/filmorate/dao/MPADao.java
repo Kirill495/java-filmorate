@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface MPADao {
 
-  MPA findMPARatingById(int id);
+    MPA findMPARatingById(int id);
 
-  List<MPA> findAllMPARating();
+    List<MPA> findAllMPARating();
 
 }

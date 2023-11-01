@@ -14,19 +14,19 @@ import java.util.List;
 @RequestMapping(value = "/mpa")
 public class MPAController {
 
-  private final MPAService mpaService;
+    private final MPAService mpaService;
 
-  public MPAController(MPAService mpaService) {
-    this.mpaService = mpaService;
-  }
+    public MPAController(MPAService mpaService) {
+        this.mpaService = mpaService;
+    }
 
-  @GetMapping
-  public List<MPA> getAllGenres() {
-    return mpaService.getAllRating();
-  }
+    @GetMapping
+    public List<MPA> getAllGenres() {
+        return mpaService.getAllRating();
+    }
 
-  @GetMapping("/{id}")
-  public MPA getRatingById(@PathVariable("id") int id) {
-    return mpaService.getRatingById(id);
-  }
+    @GetMapping("/{id}")
+    public MPA getRatingById(@PathVariable("id") int id) {
+        return mpaService.getRatingById(id);
+    }
 }

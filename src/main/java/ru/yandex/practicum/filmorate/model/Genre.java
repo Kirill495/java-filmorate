@@ -6,6 +6,6 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class Genre {
-  private int id;
-  private String name;
+    private int id;
+    private String name;
 }

@@ -14,18 +14,18 @@ import java.util.Set;
 @Data
 @Component
 public class User {
-  private int id;
-  @NotNull(message = "e-mail не должен быть пустым")
-  @Email(message = "это не e-mail")
-  private String email;
-  @NotNull(message = "Логин не должен быть пустым")
-  @Pattern(regexp = "^\\S+$", message = "Логин не должен быть пустым или содержать пробелы")
-  private String login;
-  private String name;
-  @PastOrPresent(message = "Дата рождения не может быть больше текущей даты")
-  private LocalDate birthday;
-  private Set<UserRelation> relations = new HashSet<>();
+    private int id;
+    @NotNull(message = "e-mail не должен быть пустым")
+    @Email(message = "это не e-mail")
+    private String email;
+    @NotNull(message = "Логин не должен быть пустым")
+    @Pattern(regexp = "^\\S+$", message = "Логин не должен быть пустым или содержать пробелы")
+    private String login;
+    private String name;
+    @PastOrPresent(message = "Дата рождения не может быть больше текущей даты")
+    private LocalDate birthday;
+    private Set<UserRelation> relations = new HashSet<>();
 
-  public User() {
-  }
+    public User() {
+    }
 }

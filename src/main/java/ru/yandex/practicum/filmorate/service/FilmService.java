@@ -14,68 +14,68 @@ import java.util.Set;
 @Service
 public class FilmService {
 
-  private final FilmStorage storage;
-  private final UserService userService;
+    private final FilmStorage storage;
+    private final UserService userService;
 
-  @Autowired
-  public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService) {
-    this.storage = storage;
-    this.userService = userService;
-  }
-
-  public Film getFilm(int id) {
-    return getFilmInner(id);
-  }
-
-  public Film addFilm(Film film) {
-    return storage.addFilm(film);
-  }
-
-  public Film updateFilm(Film film) {
-    int filmId = film.getId();
-    if (filmId == 0) {
-      throw new FilmDataValidationException("Идентификатор фильма не может быть пустым");
+    @Autowired
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService) {
+        this.storage = storage;
+        this.userService = userService;
     }
-    return storage.updateFilm(film);
-  }
 
-  public List<Film> getFilms() {
-    return storage.getFilms();
-  }
-
-  public boolean addLikeFilm(int filmId, int userId) {
-    Film film = getFilmInner(filmId);
-    userService.getUser(userId);
-    Set<Integer> likes = film.getLikes();
-    if (!likes.contains(userId)) {
-      film.getLikes().add(userId);
-      storage.updateFilm(film);
-      return true;
+    public Film getFilm(int id) {
+        return getFilmInner(id);
     }
-    return false;
-  }
 
-  public boolean removeLikeFromFilm(int filmId, int userId) {
-    Film film = getFilmInner(filmId);
-    userService.getUser(userId);
-    Set<Integer> likes = film.getLikes();
-    if (likes.contains(userId)) {
-      likes.remove(userId);
-      storage.updateFilm(film);
-      return true;
+    public Film addFilm(Film film) {
+        return storage.addFilm(film);
     }
-    return false;
-  }
 
-  public List<Film> getTheMostPopularFilms(int count) {
-    return storage.getTheMostPopularFilms(count);
-  }
-
-  private Film getFilmInner(int id) {
-    Film film = storage.getFilm(id);
-    if (film == null) {
-      throw new FilmNotFoundException(id);
+    public Film updateFilm(Film film) {
+        int filmId = film.getId();
+        if (filmId == 0) {
+            throw new FilmDataValidationException("Идентификатор фильма не может быть пустым");
+        }
+        return storage.updateFilm(film);
     }
-    return film;
-  }
+
+    public List<Film> getFilms() {
+        return storage.getFilms();
+    }
+
+    public boolean addLikeFilm(int filmId, int userId) {
+        Film film = getFilmInner(filmId);
+        userService.getUser(userId);
+        Set<Integer> likes = film.getLikes();
+        if (!likes.contains(userId)) {
+            film.getLikes().add(userId);
+            storage.updateFilm(film);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeLikeFromFilm(int filmId, int userId) {
+        Film film = getFilmInner(filmId);
+        userService.getUser(userId);
+        Set<Integer> likes = film.getLikes();
+        if (likes.contains(userId)) {
+            likes.remove(userId);
+            storage.updateFilm(film);
+            return true;
+        }
+        return false;
+    }
+
+    public List<Film> getTheMostPopularFilms(int count) {
+        return storage.getTheMostPopularFilms(count);
+    }
+
+    private Film getFilmInner(int id) {
+        Film film = storage.getFilm(id);
+        if (film == null) {
+            throw new FilmNotFoundException(id);
+        }
+        return film;
+    }
 }

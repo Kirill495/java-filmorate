@@ -14,38 +14,38 @@ import java.util.List;
 @Component
 public class GenreDaoImpl implements GenreDao {
 
-  private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-  public GenreDaoImpl(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate;
-  }
-
-  @Override
-  public Genre findGenreById(int id) {
-    String sqlQuery = "SELECT genre_id, title FROM genres WHERE genre_id = ?";
-    return jdbcTemplate
-            .queryForStream(sqlQuery, this::mapRowToGenre, id)
-            .findFirst()
-            .orElseThrow(() -> {
-              throw new GenreNotFoundException(id);
-            });
-  }
-
-  @Override
-  public List<Genre> findAllGenres() {
-    String sqlQuery = "SELECT genre_id, title FROM genres";
-    return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
-  }
-
-  private Genre mapRowToGenre(ResultSet resultSet, int rowNum) {
-    Genre genre = new Genre();
-
-    try {
-      genre.setName(resultSet.getString("title"));
-      genre.setId(resultSet.getInt("genre_id"));
-    } catch (SQLException e) {
-      throw new CreateGenreFromDatabaseResultSetException(e);
+    public GenreDaoImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
-    return genre;
-  }
+
+    @Override
+    public Genre findGenreById(int id) {
+        String sqlQuery = "SELECT genre_id, title FROM genres WHERE genre_id = ?";
+        return jdbcTemplate
+                .queryForStream(sqlQuery, this::mapRowToGenre, id)
+                .findFirst()
+                .orElseThrow(() -> {
+                    throw new GenreNotFoundException(id);
+                });
+    }
+
+    @Override
+    public List<Genre> findAllGenres() {
+        String sqlQuery = "SELECT genre_id, title FROM genres";
+        return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
+    }
+
+    private Genre mapRowToGenre(ResultSet resultSet, int rowNum) {
+        Genre genre = new Genre();
+
+        try {
+            genre.setName(resultSet.getString("title"));
+            genre.setId(resultSet.getInt("genre_id"));
+        } catch (SQLException e) {
+            throw new CreateGenreFromDatabaseResultSetException(e);
+        }
+        return genre;
+    }
 }

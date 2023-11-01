@@ -10,18 +10,18 @@ import java.util.List;
 @Service
 public class GenreService {
 
-  private final GenreDao genreDao;
+    private final GenreDao genreDao;
 
-  @Autowired
-  public GenreService(GenreDao genreDao) {
-    this.genreDao = genreDao;
-  }
+    @Autowired
+    public GenreService(GenreDao genreDao) {
+        this.genreDao = genreDao;
+    }
 
-  public List<Genre> getAllGenres() {
-    return genreDao.findAllGenres();
-  }
+    public List<Genre> getAllGenres() {
+        return genreDao.findAllGenres();
+    }
 
-  public Genre getGenreById(int id) {
-    return genreDao.findGenreById(id);
-  }
+    public Genre getGenreById(int id) {
+        return genreDao.findGenreById(id);
+    }
 }

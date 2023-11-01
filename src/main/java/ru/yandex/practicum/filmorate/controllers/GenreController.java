@@ -14,20 +14,20 @@ import java.util.List;
 @RequestMapping("/genres")
 public class GenreController {
 
-  private final GenreService genreService;
+    private final GenreService genreService;
 
-  @Autowired
-  public GenreController(GenreService genreService) {
-    this.genreService = genreService;
-  }
+    @Autowired
+    public GenreController(GenreService genreService) {
+        this.genreService = genreService;
+    }
 
-  @GetMapping
-  public List<Genre> getAllGenres() {
-    return  genreService.getAllGenres();
-  }
+    @GetMapping
+    public List<Genre> getAllGenres() {
+        return genreService.getAllGenres();
+    }
 
-  @GetMapping("/{id}")
-  public Genre getGenreById(@PathVariable int id) {
-    return genreService.getGenreById(id);
-  }
+    @GetMapping("/{id}")
+    public Genre getGenreById(@PathVariable int id) {
+        return genreService.getGenreById(id);
+    }
 }
