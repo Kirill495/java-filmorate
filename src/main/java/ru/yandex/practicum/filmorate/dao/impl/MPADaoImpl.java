@@ -26,7 +26,7 @@ public class MPADaoImpl implements MPADao {
     String sqlQuery = "SELECT rating_id, title, description FROM MPA_RATING WHERE rating_id = ?";
     return jdbcTemplate.queryForStream(sqlQuery, this::mapRowToRating, id)
             .findFirst()
-            .orElseThrow(() -> {throw new MPANotFoundException(id);});
+            .orElseThrow(() -> { throw new MPANotFoundException(id); });
   }
 
   @Override
@@ -37,7 +37,6 @@ public class MPADaoImpl implements MPADao {
 
   private MPA mapRowToRating(ResultSet resultSet, int rowNum) {
     MPA rating = new MPA();
-
     try {
       rating.setId(resultSet.getInt("rating_id"));
       rating.setName(resultSet.getString("title"));
@@ -45,7 +44,6 @@ public class MPADaoImpl implements MPADao {
     } catch (SQLException e) {
       throw new CreateMPAFromDatabaseResultSetException(e);
     }
-
     return rating;
   }
 }
