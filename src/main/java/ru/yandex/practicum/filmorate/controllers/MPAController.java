@@ -26,7 +26,7 @@ public class MPAController {
   }
 
   @GetMapping("/{id}")
-  public MPA getRatingById(@PathVariable("id") int id){
+  public MPA getRatingById(@PathVariable("id") int id) {
     return mpaService.getRatingById(id);
   }
 }
