@@ -49,7 +49,7 @@ public class UserDbStorage implements UserStorage {
             .query(
                     sqlQuery,
                     Map.of("first_user_id", mainUser.getId(), "second_user_id", otherUser.getId()),
-                    (resultSet, rowNum)-> (createNewUser(resultSet)));
+                    (resultSet, rowNum) -> (createNewUser(resultSet)));
   }
 
   @Override

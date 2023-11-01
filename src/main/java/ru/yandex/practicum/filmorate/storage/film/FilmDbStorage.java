@@ -194,7 +194,6 @@ public class FilmDbStorage implements FilmStorage {
             "            LIMIT %d) AS top_movies\n" +
             "    ON movies.MOVIE_ID = top_movies.MOVIE_ID order by top_movies.likes desc", count);
     return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
-
   }
 
   private List<Film> getFilmsWithoutRating(int count) {
@@ -215,7 +214,6 @@ public class FilmDbStorage implements FilmStorage {
             "    LEFT JOIN  MOVIES_LIKES ON movies.movie_id = MOVIES_LIKES.movie_id \n" +
             "    WHERE MOVIES_LIKES.movie_id IS NULL LIMIT %d", count);
     return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
-
   }
 
   private void fillInGenres(List<Film> films) {
@@ -240,7 +238,8 @@ public class FilmDbStorage implements FilmStorage {
                 Genre genre = new Genre();
                 genre.setId(rowSet.getInt("genre_id"));
                 genre.setName(rowSet.getString("title"));
-                film.getGenres().add(genre);});
+                film.getGenres().add(genre);
+              });
     }
   }
 
@@ -261,7 +260,8 @@ public class FilmDbStorage implements FilmStorage {
               .filter(film -> (film.getId() == movieId))
               .findFirst()
               .ifPresent(film -> {
-                film.getLikes().add(rowSet.getInt("user_id"));});
+                film.getLikes().add(rowSet.getInt("user_id"));
+              });
     }
   }
 }

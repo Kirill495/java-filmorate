@@ -51,10 +51,8 @@ public class UserService {
   }
 
   public void addFriend(int userId, int friendId) {
-    
     User user = getUserInner(userId);
     User friend = getUserInner(friendId);
-
     Set<UserRelation> relations = user.getRelations();
     Predicate<UserRelation> counterRequestIsAlreadySent = r -> ((r.getApproverId() == userId && r.getRequesterId() == friendId));
     Predicate<UserRelation> requestIsAlreadySent = r -> ((r.getRequesterId() == userId && r.getApproverId() == friendId));
@@ -62,11 +60,9 @@ public class UserService {
       // запрос уже был отправлен с противоположной стороны
       storage.updateUserRelations(user, friend, true);
     }
-
     if (relations.stream().noneMatch(requestIsAlreadySent)) {
       storage.updateUserRelations(user, friend, false);
     }
-
   }
 
   public void deleteFriend(int userId, int friendId) {
@@ -78,7 +74,7 @@ public class UserService {
   public List<User> getFriends(int id) {
     User user = getUserInner(id);
     return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
-            .map(r->((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
+            .map(r -> ((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
             .map(storage::getUser)
             .collect(Collectors.toList());
   }
@@ -88,7 +84,6 @@ public class UserService {
     User otherUser = getUserInner(otherId);
 
     return storage.getCommonFriends(mainUser, otherUser);
-
   }
 
   private User getUserInner(int id) {
