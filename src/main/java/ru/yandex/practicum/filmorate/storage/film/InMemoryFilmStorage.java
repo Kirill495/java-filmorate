@@ -34,9 +34,6 @@ public class InMemoryFilmStorage implements FilmStorage {
   public Film updateFilm(Film film) {
     log.debug("update film {}", film);
     int filmId = film.getId();
-    if (filmId == 0) {
-      throw new FilmDataValidationException("Идентификатор фильма не может быть пустым");
-    }
     if (!films.containsKey(filmId)) {
       throw new FilmNotFoundException(filmId);
     }

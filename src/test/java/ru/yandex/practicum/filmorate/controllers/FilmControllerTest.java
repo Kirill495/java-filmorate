@@ -168,7 +168,7 @@ class FilmControllerTest {
 
   @Test
   void updateFilmWithNonExistingIdShouldThrowException() throws Exception {
-    film.setId(1);
+    film.setId(9999);
     mvc.perform(
         MockMvcRequestBuilders
                 .put("/films")
@@ -177,7 +177,7 @@ class FilmControllerTest {
       .andExpect(status().isNotFound())
       .andExpect(content().json(
               objectMapper.writeValueAsString(
-                      Map.of("error", "Фильм с id 1 не найден"))));
+                      Map.of("error", "Фильм с id 9999 не найден"))));
   }
 
   @Test
