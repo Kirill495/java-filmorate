@@ -11,18 +11,18 @@ import java.util.List;
 @Service
 public class MPAService {
 
-  private final MPADao MPADao;
+  private final MPADao mpaDao;
 
   @Autowired
   public MPAService(MPADao mpaDao) {
-    this.MPADao = mpaDao;
+    this.mpaDao = mpaDao;
   }
 
   public List<MPA> getAllRating() {
-    return MPADao.findAllMPARating();
+    return mpaDao.findAllMPARating();
   }
 
   public MPA getRatingById(int id) {
-    return MPADao.findMPARatingById(id);
+    return mpaDao.findMPARatingById(id);
   }
 }
