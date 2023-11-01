@@ -35,6 +35,6 @@ public class Film {
             "description", description,
             "release_date", releaseDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
             "duration", duration,
-            "rating", mpa ==null ? 0 : mpa.getId());
+            "rating", mpa == null ? 0 : mpa.getId());
   }
 }

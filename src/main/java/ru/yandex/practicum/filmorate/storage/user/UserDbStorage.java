@@ -166,6 +166,7 @@ public class UserDbStorage implements UserStorage {
               relation.setAccepted(rs.getBoolean("accepted"));
               relation.setRequesterId(rs.getInt("requester_id"));
               relation.setApproverId(rs.getInt("approver_id"));
-              return relation;}));
+              return relation;
+            }));
   }
 }
