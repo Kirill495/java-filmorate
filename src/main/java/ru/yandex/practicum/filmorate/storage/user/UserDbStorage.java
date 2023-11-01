@@ -28,23 +28,24 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getCommonFriends(User mainUser, User otherUser) {
         String sqlQuery = "SELECT\n" +
-                "    users.USER_ID,\n" +
-                "    users.email,\n" +
-                "    users.login,\n" +
-                "    users.name,\n" +
-                "    users.birthday\n" +
-                "FROM\n" +
-                "    users\n" +
-                "        inner join\n" +
-                "    ((SELECT REQUESTER_ID as user_id FROM USER_RELATIONS WHERE APPROVER_ID = :first_user_id\n" +
-                "      UNION ALL\n" +
-                "      SELECT APPROVER_ID as user_id FROM USER_RELATIONS WHERE REQUESTER_ID = :first_user_id AND ACCEPTED)\n" +
-                "     INTERSECT\n" +
-                "     (SELECT REQUESTER_ID as user_id FROM USER_RELATIONS WHERE APPROVER_ID = :second_user_id\n" +
-                "      UNION ALL\n" +
-                "      SELECT APPROVER_ID as user_id FROM USER_RELATIONS WHERE REQUESTER_ID = :second_user_id AND ACCEPTED)) AS common_friends\n" +
-                "    ON users.user_id = common_friends.user_id";
-
+                "    users.USER_ID, users.email, users.login, users.name, users.birthday\n" +
+                "FROM \n" +
+                "     users\n" +
+                "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
+                "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
+                "WHERE\n" +
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)\n" +
+                "INTERSECT \n" +
+                "SELECT\n" +
+                "    users.USER_ID, users.email, users.login, users.name, users.birthday\n" +
+                "FROM \n" +
+                "     users\n" +
+                "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
+                "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
+                "WHERE\n" +
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
                 .query(
                         sqlQuery,
