@@ -28,7 +28,7 @@ public class GenreDaoImpl implements GenreDao {
             .findFirst()
             .orElseThrow(() -> {
               throw new GenreNotFoundException(id);
-            } );
+            });
   }
 
   @Override
