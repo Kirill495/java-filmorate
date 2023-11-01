@@ -26,7 +26,9 @@ public class GenreDaoImpl implements GenreDao {
     return jdbcTemplate
             .queryForStream(sqlQuery, this::mapRowToGenre, id)
             .findFirst()
-            .orElseThrow(() -> { throw new GenreNotFoundException(id); });
+            .orElseThrow(() -> {
+              throw new GenreNotFoundException(id);
+            } );
   }
 
   @Override
