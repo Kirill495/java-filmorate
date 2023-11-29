@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS reviews
     review_id  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     content    VARCHAR(MAX),
     isPositive BOOLEAN,
-    user_id    INT REFERENCES users (user_id),
-    movie_id   INT REFERENCES movies (movie_id)
+    user_id    INT REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    movie_id   INT REFERENCES movies (movie_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 alter table reviews add constraint reviews_user_not_null CHECK user_id is NOT NULL;
 alter table reviews add constraint reviews_movie_not_null CHECK movie_id is NOT NULL;
