@@ -33,8 +33,9 @@ public class ReviewControllerTest {
     @Autowired
     private MockMvc mvc;
     private final JdbcTemplate jdbcTemplate;
+
     @Test
-    void TestShouldGetTwoReviews() {
+    void testShouldGetTwoReviews() {
 
         FilmStorage filmStorage = new FilmDbStorage(jdbcTemplate);
         UserStorage userStorage = new UserDbStorage(jdbcTemplate);
