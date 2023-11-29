@@ -10,7 +10,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 public class Review {
-    private Integer id;
+    private Integer reviewId;
     @NotBlank(message = "Содержание отзыва не может быть пустым")
     private String content;
     @NotNull

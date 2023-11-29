@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -27,7 +28,7 @@ public class ReviewDbStorage implements ReviewStorage{
 
     @Override
     public Review addReview(Review review) {
-        int reviewId = 0;
+        int reviewId;
         try {
             reviewId = new SimpleJdbcInsert(jdbcTemplate)
                     .withTableName("REVIEWS")
@@ -41,26 +42,23 @@ public class ReviewDbStorage implements ReviewStorage{
 
     @Override
     public Review updateReview(Review review) {
-        if (getReview(review.getId()) == null) {
-            throw new ReviewNotFoundException(review.getId());
+        if (getReview(review.getReviewId()) == null) {
+            throw new ReviewNotFoundException(review.getReviewId());
         }
         String sqlQuery =
                 "UPDATE REVIEWS\n" +
-                "    SET CONTENT = ?, ISPOSITIVE = ?, USER_ID = ?, MOVIE_ID = ?\n" +
+                "    SET CONTENT = ?, ISPOSITIVE = ?\n" +
                 "WHERE\n" +
                 "      REVIEW_ID = ?";
-
         try {
             jdbcTemplate.update(sqlQuery,
                     review.getContent(),
                     review.getIsPositive(),
-                    review.getUserId(),
-                    review.getFilmId(),
-                    review.getId());
+                    review.getReviewId());
         } catch (DataAccessException e) {
             throw new CRUDReviewInDatabaseException("Не удалось обновить отзыв в базе данных.", e);
         }
-        return getReview(review.getId());
+        return getReview(review.getReviewId());
     }
 
     @Override
@@ -86,13 +84,13 @@ public class ReviewDbStorage implements ReviewStorage{
                 "        REVIEWS.MOVIE_ID as movieId,\n" +
                 "        MAX(REVIEWS.CONTENT) AS content,\n" +
                 "        MAX(REVIEWS.ISPOSITIVE) AS isPositive,\n" +
-                "        SUM(CASE WHEN RE.MARK IS NULL THEN 0 ELSE RE.MARK END) AS useful\n" +
+                "        SUM(IFNULL(RE.MARK, 0)) AS useful\n" +
                 "FROM REVIEWS\n" +
                 "    LEFT JOIN REVIEWS_ESTIMATIONS RE ON REVIEWS.REVIEW_ID = RE.REVIEW_ID\n" +
                 "WHERE \n" +
                 "    REVIEWS.REVIEW_ID = ?\n" +
                 "GROUP BY \n" +
-                "    REVIEWS.USER_ID, REVIEWS.MOVIE_ID";
+                "    REVIEWS.REVIEW_ID, REVIEWS.USER_ID, REVIEWS.MOVIE_ID";
         try {
             return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToReview, id);
         } catch (EmptyResultDataAccessException e) {
@@ -113,15 +111,19 @@ public class ReviewDbStorage implements ReviewStorage{
                 "WHERE %s\n" +
                 "GROUP BY\n" +
                 "    R.REVIEW_ID\n" +
+                "ORDER BY useful DESC, id \n" +
                 "LIMIT %d;",
                 (movieId == 0) ? "TRUE" : "R.MOVIE_ID = ?",
                 count);
-        if (movieId == 0) {
-            return jdbcTemplate.query(sqlQuery, this::mapRowToReview);
-        } else {
-            return jdbcTemplate.query(sqlQuery, this::mapRowToReview, movieId);
+        try {
+            if (movieId == 0) {
+                return jdbcTemplate.query(sqlQuery, this::mapRowToReview);
+            } else {
+                return jdbcTemplate.query(sqlQuery, this::mapRowToReview, movieId);
+            }
+        } catch (EmptyResultDataAccessException e) {
+            return new ArrayList<>();
         }
-
     }
 
     @Override
@@ -147,7 +149,7 @@ public class ReviewDbStorage implements ReviewStorage{
     private Review mapRowToReview(ResultSet resultSet, int rowNum) {
         Review review = new Review();
         try {
-            review.setId(resultSet.getInt("id"));
+            review.setReviewId(resultSet.getInt("id"));
             review.setContent(resultSet.getString("content"));
             review.setFilmId(resultSet.getInt("movieId"));
             review.setUserId(resultSet.getInt("userId"));

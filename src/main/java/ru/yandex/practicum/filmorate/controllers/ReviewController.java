@@ -29,7 +29,7 @@ public class ReviewController {
 
     @GetMapping
     public List<Review> getReviews(@RequestParam(required = false) Integer filmId, @RequestParam(defaultValue = "10") int count) {
-        return service.getReviews(filmId, count);
+        return service.getReviews((filmId == null) ? 0 : filmId, count);
     }
 
     @PutMapping
