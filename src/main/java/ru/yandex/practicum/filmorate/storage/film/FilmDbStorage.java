@@ -65,6 +65,7 @@ public class FilmDbStorage implements FilmStorage {
 
         fillInGenres(films);
         fillInLikes(films);
+        fillInDirectors(films);
         return films;
     }
 
