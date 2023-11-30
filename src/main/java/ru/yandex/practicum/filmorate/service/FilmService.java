@@ -78,4 +78,16 @@ public class FilmService {
         }
         return film;
     }
+
+    public List<Film> getTheMostGenreYearPopularFilms(int limit, int genreId, int year) {
+        return storage.getMostGenreYearPopularFilms(limit, genreId, year);
+    }
+
+    public List<Film> getTheMostGenrePopularFilms(int limit, int genreId) {
+        return storage.getMostGenrePopularFilms(limit, genreId);
+    }
+
+    public List<Film> getTheMostYearPopularFilms(int limit, int year) {
+        return storage.getMostYearPopularFilms(limit, year);
+    }
 }
