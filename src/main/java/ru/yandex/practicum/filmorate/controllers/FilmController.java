@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controllers;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,5 +65,10 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getTopPopular(@RequestParam(defaultValue = "10") int count) {
         return service.getTheMostPopularFilms(count);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getSortedFilms(@PathVariable("directorId") int id, @RequestParam String sortBy) {
+        return service.getSortedFilms(id, sortBy);
     }
 }

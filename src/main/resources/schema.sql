@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS genres (
     title VARCHAR NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS directors (
+	director_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	name VARCHAR NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS movies (
     movie_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title VARCHAR NOT NULL,
@@ -17,6 +22,12 @@ CREATE TABLE IF NOT EXISTS movies (
     release_date DATE,
     duration INT,
     rating INT references mpa_rating(rating_id)
+);
+
+CREATE TABLE IF NOT EXISTS movies_directors (
+    movie_id INT REFERENCES movies(movie_id),
+    director_id INT REFERENCES directors(director_id),
+    PRIMARY KEY (movie_id, director_id)
 );
 
 CREATE TABLE IF NOT EXISTS movies_genres (

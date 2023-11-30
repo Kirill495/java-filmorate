@@ -3,6 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import ru.yandex.practicum.filmorate.dao.DirectorDao;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,10 +20,13 @@ public class FilmService {
     private final FilmStorage storage;
     private final UserService userService;
 
+    private final DirectorService directorService;
+
     @Autowired
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService) {
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService, DirectorService directorService) {
         this.storage = storage;
         this.userService = userService;
+        this.directorService = directorService;
     }
 
     public Film getFilm(int id) {
@@ -77,5 +83,10 @@ public class FilmService {
             throw new FilmNotFoundException(id);
         }
         return film;
+    }
+
+    public List<Film> getSortedFilms(int id, String sortBy) {
+        directorService.getDirectorById(id);
+        return storage.getSortedFilms(id, sortBy);
     }
 }
