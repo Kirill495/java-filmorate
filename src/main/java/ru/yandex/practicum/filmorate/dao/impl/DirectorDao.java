@@ -39,7 +39,6 @@ public class DirectorDao implements ru.yandex.practicum.filmorate.dao.DirectorDa
         } catch (EmptyResultDataAccessException e) {
             throw new DirectorNotFoundException(id);
         }
-
     }
 
     @Override
