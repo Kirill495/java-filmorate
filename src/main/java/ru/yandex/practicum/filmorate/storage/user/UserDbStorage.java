@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateUserFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -168,5 +169,10 @@ public class UserDbStorage implements UserStorage {
                     relation.setApproverId(rs.getInt("approver_id"));
                     return relation;
                 }));
+    }
+
+    public boolean deleteUser(@PathVariable int userId) {
+        String sqlQuery = "DELETE FROM users WHERE user_id=?;";
+        return jdbcTemplate.update(sqlQuery, userId) > 0;
     }
 }

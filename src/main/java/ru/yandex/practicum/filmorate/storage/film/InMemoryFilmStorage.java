@@ -61,4 +61,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.trace("Storage. Получение фильма по идентификатору {}", id);
         return films.get(id);
     }
+
+    @Override
+    public boolean filmDelete(int filmId) {
+        throw new UnsupportedOperationException();
+    }
 }

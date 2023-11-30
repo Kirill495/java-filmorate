@@ -78,4 +78,9 @@ public class FilmService {
         }
         return film;
     }
+
+    public boolean deleteFilm(int filmId) {
+        getFilmInner(filmId);
+        return storage.filmDelete(filmId);
+    }
 }
