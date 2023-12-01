@@ -49,16 +49,15 @@ public class FilmDbStorage implements FilmStorage {
                         "        ON movies.rating = MPA_rating.rating_id\n" +
                         "    LEFT JOIN MOVIES_LIKES " +
                         "        ON movies_likes.movie_id = movies.movie_id\n");
-        StringBuilder sqlSortedBy = new StringBuilder("ORDER BY");
 
         if (sortBy.equals("year")) {
-            sqlSortedBy.append(" EXTRACT(YEAR FROM movies.release_date) ");
-            sqlSortedBy.append("ASC");
-            sqlQuery.append(sqlSortedBy);
+            sqlQuery.append("ORDER BY");
+            sqlQuery.append(" EXTRACT(YEAR FROM movies.release_date) ");
+            sqlQuery.append("ASC");
         } else if (sortBy.equals("likes")) {
-            sqlSortedBy.append("GROUP BY id, movie_title, movie_description, release_date, duration, rating_id, rating_title, rating_description\n");
-            sqlSortedBy.append("ORDER BY count(MOVIES_LIKES.*) ");
-            sqlSortedBy.append("DESC");
+            sqlQuery.append("GROUP BY id, movie_title, movie_description, release_date, duration, rating_id, rating_title, rating_description\n");
+            sqlQuery.append("ORDER BY count(MOVIES_LIKES.*) ");
+            sqlQuery.append("DESC");
         }
 
         List<Film> films = jdbcTemplate.query(sqlQuery.toString(), (rs, rowNum) -> (createNewFilm(rs)), id);

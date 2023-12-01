@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.db.CreateGenreFromDatabaseResultSetException;
+import ru.yandex.practicum.filmorate.exceptions.db.CreateDirectorFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.director.DirectorNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 
@@ -15,11 +15,11 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Component
-public class DirectorDao implements ru.yandex.practicum.filmorate.dao.DirectorDao {
+public class DirectorDaoImpl implements ru.yandex.practicum.filmorate.dao.DirectorDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public DirectorDao(JdbcTemplate jdbcTemplate) {
+    public DirectorDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -60,9 +60,7 @@ public class DirectorDao implements ru.yandex.practicum.filmorate.dao.DirectorDa
         getDirectorById(director.getId());
         String sqlUpdate = "UPDATE directors SET name = ? WHERE director_id = ?";
 
-        jdbcTemplate.update(sqlUpdate,
-                director.getName(),
-                director.getId());
+        jdbcTemplate.update(sqlUpdate, director.getName(), director.getId());
         return director;
     }
 
@@ -81,7 +79,7 @@ public class DirectorDao implements ru.yandex.practicum.filmorate.dao.DirectorDa
             director.setName(resultSet.getString("name"));
             director.setId(resultSet.getInt("director_id"));
         } catch (SQLException e) {
-            throw new CreateGenreFromDatabaseResultSetException(e);
+            throw new CreateDirectorFromDatabaseResultSetException(e);
         }
         return director;
     }
