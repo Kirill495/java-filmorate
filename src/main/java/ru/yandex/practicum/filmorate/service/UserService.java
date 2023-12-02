@@ -73,8 +73,9 @@ public class UserService {
 
     public List<User> getFriends(int id) {
         User user = getUserInner(id);
-        return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
-                .map(r -> ((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
+        return user.getRelations().stream()
+                .filter(rel -> (rel.isAccepted() || rel.getRequesterId() == id))
+                .map(r -> ((r.getRequesterId() == id ? r.getApproverId() : r.getRequesterId())))
                 .map(storage::getUser)
                 .collect(Collectors.toList());
     }
