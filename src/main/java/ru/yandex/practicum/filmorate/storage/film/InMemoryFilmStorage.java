@@ -61,4 +61,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.trace("Storage. Получение фильма по идентификатору {}", id);
         return films.get(id);
     }
+
+    @Override
+    public List<Film> getRecommendations(int user_id) {
+        return new ArrayList<>();
+    }
 }
