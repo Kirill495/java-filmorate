@@ -16,5 +16,5 @@ public interface FilmStorage {
 
     List<Film> getTheMostPopularFilms(int count);
 
-    List<Film> getRecommendations(int user_id);
+    List<Film> getRecommendations(int userId);
 }
