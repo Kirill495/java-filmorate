@@ -66,8 +66,8 @@ public class FilmController {
         return service.getTheMostPopularFilms(count);
     }
 
-    @PutMapping("/common?userId={userId}&friendId={friendId}")
-    public List<Film> getCommonFilms(@PathVariable("id") int userId, @PathVariable int friendId) {
+    @GetMapping("/common?userId={userId}&friendId={friendId}")
+    public List<Film> getCommonFilms(@PathVariable int userId, @PathVariable int friendId) {
         return service.getCommonFilms(userId, friendId);
     }
 
