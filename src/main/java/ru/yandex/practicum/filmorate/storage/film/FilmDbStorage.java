@@ -173,13 +173,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String sqlQuery = "SELECT * FROM movies\n" +
-                "LEFT JOIN movies_likes ON movies.movie_id = movies_likes.movie_id,\n" +
-                "LEFT JOIN users ON movies_likes.user_id = users.user_id,\n" +
-                "LEFT JOIN user_relations ON users.user_id = user_relations.requester_id,\n" +
-                "WHERE user_relations.requester_id = " + userId +
-                "AND user.relation.approver_id = " + friendId +
-                "AND accepted IS TRUE";
+        String sqlQuery = "SELECT * FROM movies " +
+                " LEFT JOIN movies_likes ON movies.movie_id = movies_likes.movie_id, " +
+                " LEFT JOIN users ON movies_likes.user_id = users.user_id, " +
+                " LEFT JOIN user_relations ON users.user_id = user_relations.requester_id, " +
+                " WHERE user_relations.requester_id = " + userId + " " +
+                " AND user.relation.approver_id = " + friendId + " " +
+                " AND accepted IS TRUE;";
 
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
     }
