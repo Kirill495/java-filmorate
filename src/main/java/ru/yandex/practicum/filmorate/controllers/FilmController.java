@@ -67,7 +67,7 @@ public class FilmController {
     }
 
     @PutMapping("/common?userId={userId}&friendId={friendId}")
-    public List<Film> getCommonFilms(@PathVariable("id") String userId, @PathVariable String friendId) {
+    public List<Film> getCommonFilms(@PathVariable("id") int userId, @PathVariable int friendId) {
         return service.getCommonFilms(userId, friendId);
     }
 

@@ -63,7 +63,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getCommonFilms(String userId, String friendId) {
+    public List<Film> getCommonFilms(int userId, int friendId) {
         return null;
     }
 }

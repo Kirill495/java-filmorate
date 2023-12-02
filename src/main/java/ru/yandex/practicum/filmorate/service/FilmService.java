@@ -79,7 +79,7 @@ public class FilmService {
         return film;
     }
 
-    public List<Film> getCommonFilms(String userId, String friendId) {
+    public List<Film> getCommonFilms(int userId, int friendId) {
         return storage.getCommonFilms(userId, friendId);
     }
 }

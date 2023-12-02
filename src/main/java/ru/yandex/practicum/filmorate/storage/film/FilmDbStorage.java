@@ -172,7 +172,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getCommonFilms(String userId, String friendId) {
+    public List<Film> getCommonFilms(int userId, int friendId) {
         String sqlQuery = "SELECT * FROM movies\n" +
                 "LEFT JOIN movies_likes ON movies.movie_id = movies_likes.movie_id,\n" +
                 "LEFT JOIN users ON movies_likes.user_id = users.user_id,\n" +
