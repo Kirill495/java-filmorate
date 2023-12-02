@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,8 +172,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getCommonFilms(String userId, String friendId){
-        String sqlQuery = "";
+    public List<Film> getCommonFilms(String userId, String friendId) {
+        String sqlQuery = "SELECT * FROM movies\n" +
+                "LEFT JOIN movies_likes ON movies.movie_id = movies_likes.movie_id,\n" +
+                "LEFT JOIN users ON movies_likes.user_id = users.user_id,\n" +
+                "LEFT JOIN user_relations ON users.user_id = user_relations.requester_id,\n" +
+                "WHERE user_relations.requester_id = " + userId +
+                "AND user.relation.approver_id = " + friendId +
+                "AND accepted IS TRUE";
 
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
     }
