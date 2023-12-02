@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,6 +170,13 @@ public class FilmDbStorage implements FilmStorage {
         fillInGenres(films);
         fillInLikes(films);
         return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(String userId, String friendId){
+        String sqlQuery = "";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
     }
 
     private List<Film> getFilmsWithRating(int count) {

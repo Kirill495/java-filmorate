@@ -65,4 +65,10 @@ public class FilmController {
     public List<Film> getTopPopular(@RequestParam(defaultValue = "10") int count) {
         return service.getTheMostPopularFilms(count);
     }
+
+    @PutMapping("/common?userId={userId}&friendId={friendId}")
+    public List<Film> getCommonFilms(@PathVariable("id") String userId, @PathVariable String friendId) {
+        return service.getCommonFilms(userId, friendId);
+    }
+
 }
