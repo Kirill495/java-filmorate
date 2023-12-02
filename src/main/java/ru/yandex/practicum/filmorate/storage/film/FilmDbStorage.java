@@ -86,7 +86,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getRecommendations(int user_id) {
+    public List<Film> getRecommendations(int userId) {
         String sqlQuery =
                 "--Получаем итоговый список фильмов из той же movies_likes через лайки:-------------------------\n" +
                         "SELECT DISTINCT\n" +
@@ -124,7 +124,7 @@ public class FilmDbStorage implements FilmStorage {
                         "	ORDER BY COUNT(*) DESC LIMIT 1 --Сортируем по количеству лайков и отбираем первый сверху \n" +
                         "	)"
                 ;
-        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(sqlQuery, Map.of("user_id", user_id), (rs, rowNum) -> createNewFilm(rs));
+        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(sqlQuery, Map.of("user_id", userId), (rs, rowNum) -> createNewFilm(rs));
         fillInGenres(films);
         fillInLikes(films);
         return films;
