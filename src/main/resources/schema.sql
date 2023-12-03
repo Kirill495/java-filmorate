@@ -1,3 +1,4 @@
+--DROP TABLE mpa_rating, genres, movies, movies_genres, users, user_relations, movies_likes;
 
 CREATE TABLE IF NOT EXISTS mpa_rating (
     rating_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

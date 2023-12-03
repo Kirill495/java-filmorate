@@ -182,9 +182,9 @@ public class FilmDbStorage implements FilmStorage {
                 " m.description as movie_description," +
                 " m.release_date as movie_release_date," +
                 " m.duration as movie_duration," +
-                " mpa_rating.rating_id as mpa_id," +
-                " mpa_rating.description as mpa_name" +
-                " FROM MOVIES m JOIN MPA_RATING mpa ON m.RATING=MPA_RATING.RATING_ID" +
+                " mpa.rating_id as mpa_id," +
+                " mpa.description as mpa_name" +
+                " FROM MOVIES m JOIN MPA_RATING mpa ON m.RATING=MPA.RATING_ID" +
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m2" +
                 " WHERE USER_ID = :userId AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m1" +
                 " WHERE USER_ID = :friendId ORDER BY MOVIE_ID DESC))";
