@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -7,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ItemNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateFilmFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -15,6 +17,7 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Qualifier("FilmDbStorage")
+@Slf4j
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -173,15 +177,37 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String sqlQuery = "SELECT * FROM movies " +
-                " LEFT JOIN movies_likes ON movies.movie_id = movies_likes.movie_id, " +
-                " LEFT JOIN users ON movies_likes.user_id = users.user_id, " +
-                " LEFT JOIN user_relations ON users.user_id = user_relations.requester_id, " +
-                " WHERE user_relations.requester_id = " + userId + " " +
-                " AND user.relation.approver_id = " + friendId + " " +
-                " AND accepted IS TRUE;";
+        String sqlQuery = "SELECT" +
+                " m.movie_id as movie_id," +
+                " m.title as movie_name," +
+                " m.description as movie_description," +
+                " m.release_date as movie_release_date," +
+                " m.duration as movie_duration," +
+                " mpa_rating.rating_id as mpa_id," +
+                " mpa_rating.description as mpa_name" +
+                " FROM MOVIES m JOIN MPA_RATING mpa ON m.RATING=MPA_RATING.RATING_ID" +
+                " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m2" +
+                " WHERE USER_ID = :userId AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m1" +
+                " WHERE USER_ID = :friendId ORDER BY MOVIE_ID DESC))";
+        List<Film> films = jdbcTemplate.query(sqlQuery,
+                new MapSqlParameterSource[]{new MapSqlParameterSource()
+                        .addValue("userId", userId)
+                        .addValue("friendId", friendId)}, this::mapToFilm);
+        return films;
+    }
 
-        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
+    private Film mapToFilm(ResultSet rs, int i) throws SQLException {
+        Film film = new Film();
+        film.setId(rs.getInt("movie_id"));
+        film.setName(rs.getString("movie_name"));
+        film.setDescription(rs.getString("movie_description"));
+        film.setReleaseDate(rs.getObject("movie_release_date", LocalDate.class));
+        film.setDuration(rs.getInt("movie_duration"));
+        MPA mpa = new MPA();
+        mpa.setName(rs.getString("mpa_name"));
+        mpa.setId(rs.getInt("mpa_id"));
+        film.setMpa(mpa);
+        return film;
     }
 
     private List<Film> getFilmsWithRating(int count) {
