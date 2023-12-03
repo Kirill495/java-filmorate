@@ -183,7 +183,7 @@ public class FilmDbStorage implements FilmStorage {
                 " m.release_date as movie_release_date," +
                 " m.duration as movie_duration," +
                 " mpa_rating.rating_id as rating_id," +
-                " mpa_rating.description as rating_description" +
+                " mpa_rating.description as rating_description," +
                 " mpa_rating.title as rating_title" +
                 " FROM MOVIES m JOIN MPA_RATING ON m.rating=mpa_rating.rating_id" +
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES" +
