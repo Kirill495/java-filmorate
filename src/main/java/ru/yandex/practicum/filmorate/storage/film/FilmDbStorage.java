@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -220,7 +219,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private List<Film> getFilmsWithoutRating(int count) {
-
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
                 "    movies.title AS movie_title,\n" +
