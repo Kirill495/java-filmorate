@@ -16,6 +16,6 @@ public interface FilmStorage {
 
     List<Film> getTheMostPopularFilms(int count);
 
-    public boolean filmDelete(int filmId);
+    public boolean deleteFilm(int filmId);
 
 }

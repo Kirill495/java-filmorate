@@ -69,6 +69,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public boolean deleteUser(@PathVariable int userId) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryUserStorage, " +
+                "попробуйте через UserDbStorage");
     }
 }

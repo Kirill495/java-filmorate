@@ -63,7 +63,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public boolean filmDelete(int filmId) {
-        throw new UnsupportedOperationException();
+    public boolean deleteFilm(int filmId) {
+        throw new UnsupportedOperationException(("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
+                "попробуйте через FilmDbStorage"));
     }
 }
