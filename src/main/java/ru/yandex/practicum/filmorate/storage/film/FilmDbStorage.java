@@ -113,8 +113,7 @@ public class FilmDbStorage implements FilmStorage {
                         "			AND ul1.user_id != ul2.user_id --не учитываем этот же фильм\n" +
                         "	WHERE ul1.user_id = :user_id\n" +
                         "	GROUP BY  ul2.user_id\n" +
-                        "	HAVING COUNT(*) > 0 /*количество общих лайков должно быть больше чем 0*/\n" +
-                        "			AND ul2.user_id IN\n" +
+                        "	HAVING ul2.user_id IN\n" +
                         "				/*Найти всех пользователей имеющих больше лайков чем данный:*/\n" +
                         "				(SELECT DISTINCT ul.USER_ID\n" +
                         "				FROM movies_likes AS ul			\n" +
