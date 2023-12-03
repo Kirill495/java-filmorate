@@ -64,19 +64,19 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostGenreYearPopularFilms(int limit, int genreId, int year) {
+    public List<Film> getMostPopularFilmsFilterByYearAndGenre(int limit, int genreId, int year) {
         throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
                 "попробуйте через FilmDbStorage");
     }
 
     @Override
-    public List<Film> getMostYearPopularFilms(int limit, int year) {
+    public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
         throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
                 "попробуйте через FilmDbStorage");
     }
 
     @Override
-    public List<Film> getMostGenrePopularFilms(int limit, int genreId) {
+    public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
         throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
                 "попробуйте через FilmDbStorage");
     }

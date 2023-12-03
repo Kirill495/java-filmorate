@@ -264,7 +264,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostGenreYearPopularFilms(int limit, int genreId, int year) {
+    public List<Film> getMostPopularFilmsFilterByYearAndGenre(int limit, int genreId, int year) {
         String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
                 "EXTRACT(YEAR FROM m.release_date), m.duration, " +
                 "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
@@ -284,7 +284,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
 
-    public List<Film> getMostGenrePopularFilms(int limit, int genreId) {
+    public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
         String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, m.duration, " +
                 "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
                 "FROM movies AS m " +
@@ -302,7 +302,7 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-    public List<Film> getMostYearPopularFilms(int limit, int year) {
+    public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
         String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
                 "EXTRACT(YEAR FROM m.release_date), m.duration, " +
                 "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
