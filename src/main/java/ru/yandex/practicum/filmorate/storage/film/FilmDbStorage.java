@@ -186,8 +186,8 @@ public class FilmDbStorage implements FilmStorage {
                 " mpa.description as mpa_name" +
                 " FROM MOVIES m JOIN MPA_RATING mpa ON m.rating=mpa.rating_id" +
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES" +
-                " WHERE USER_ID = "+userId+" AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES" +
-                " WHERE USER_ID = "+friendId+" ORDER BY MOVIE_ID DESC))";
+                " WHERE USER_ID = " + userId + " AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES" +
+                " WHERE USER_ID = " + friendId + " ORDER BY MOVIE_ID DESC))";
         List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
         return films;
     }
