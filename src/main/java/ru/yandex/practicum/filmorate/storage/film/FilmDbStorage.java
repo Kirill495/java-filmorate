@@ -177,11 +177,11 @@ public class FilmDbStorage implements FilmStorage {
     @Override //Testing new strings in SQL query
     public List<Film> getCommonFilms(int userId, int friendId) {
         String sqlQuery = "SELECT" +
-                " m.movie_id as movie_id," +
-                " m.title as movie_name," +
+                " m.movie_id as id," +
+                " m.title as movie_title," +
                 " m.description as movie_description," +
-                " m.release_date as movie_release_date," +
-                " m.duration as movie_duration," +
+                " m.release_date as release_date," +
+                " m.duration as duration," +
                 " mpa_rating.rating_id as rating_id," +
                 " mpa_rating.description as rating_description," +
                 " mpa_rating.title as rating_title" +
