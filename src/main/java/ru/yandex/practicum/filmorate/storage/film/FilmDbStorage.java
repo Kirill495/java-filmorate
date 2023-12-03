@@ -193,20 +193,6 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
     }
 
-    private Film mapToFilm(ResultSet rs, int i) throws SQLException {
-        Film film = new Film();
-        film.setId(rs.getInt("movie_id"));
-        film.setName(rs.getString("movie_name"));
-        film.setDescription(rs.getString("movie_description"));
-        film.setReleaseDate(rs.getObject("movie_release_date", LocalDate.class));
-        film.setDuration(rs.getInt("movie_duration"));
-        MPA mpa = new MPA();
-        mpa.setName(rs.getString("mpa_name"));
-        mpa.setId(rs.getInt("mpa_id"));
-        film.setMpa(mpa);
-        return film;
-    }
-
     private List<Film> getFilmsWithRating(int count) {
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
