@@ -182,14 +182,15 @@ public class FilmDbStorage implements FilmStorage {
                 " m.description as movie_description," +
                 " m.release_date as movie_release_date," +
                 " m.duration as movie_duration," +
-                " m.rating as mpa_id," +
-                " mpa_rating.description as mpa_name" +
-                " FROM MOVIES " + // m JOIN MPA_RATING ON m.rating=mpa_rating.rating_id" +
+                " mpa_rating.rating_id as rating_id," +
+                " mpa_rating.description as rating_description" +
+                " mpa_rating.title as rating_title"+
+                " FROM MOVIES m JOIN MPA_RATING ON m.rating=mpa_rating.rating_id" +
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES" +
                 " WHERE USER_ID = " + userId + " AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES" +
                 " WHERE USER_ID = " + friendId + " ORDER BY MOVIE_ID DESC))";
-        List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
-        return films;
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)));
     }
 
     private Film mapToFilm(ResultSet rs, int i) throws SQLException {
