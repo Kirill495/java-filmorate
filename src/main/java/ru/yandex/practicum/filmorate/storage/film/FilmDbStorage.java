@@ -174,7 +174,7 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-    @Override
+    @Override //Testing new strings in SQL query
     public List<Film> getCommonFilms(int userId, int friendId) {
         String sqlQuery = "SELECT" +
                 " m.movie_id as movie_id," +
