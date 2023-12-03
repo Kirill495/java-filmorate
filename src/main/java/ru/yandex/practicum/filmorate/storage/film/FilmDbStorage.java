@@ -177,17 +177,17 @@ public class FilmDbStorage implements FilmStorage {
     @Override //Testing new strings in SQL query
     public List<Film> getCommonFilms(int userId, int friendId) {
         String sqlQuery = "SELECT" +
-                " m.movie_id as movie_id," +
-                " m.title as movie_name," +
-                " m.description as movie_description," +
-                " m.release_date as movie_release_date," +
-                " m.duration as movie_duration," +
-                " m.rating as mpa_id," +
-                " mpa.description as mpa_name" +
-                " FROM MOVIES m JOIN MPA_RATING mpa ON m.rating=mpa.rating_id" +
-                " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m2" +
-                " WHERE USER_ID = :userId AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m1" +
-                " WHERE USER_ID = :friendId ORDER BY MOVIE_ID DESC))";
+       " m.movie_id as movie_id,"+
+                " m.title as movie_name,"+
+        " m.description as movie_description,"+
+                " m.release_date as movie_release_date,"+
+        " m.duration as movie_duration,"+
+                " m.rating as mpa_id,"+
+        " mpa.description as mpa_name"+
+        " FROM MOVIES m JOIN MPA_RATING mpa ON m.rating=mpa.rating_id"+
+        " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m2"+
+                " WHERE USER_ID = :userId AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m1"+
+        " WHERE USER_ID = :friendId ORDER BY MOVIE_ID DESC));";
         List<Film> films = jdbcTemplate.query(sqlQuery,
                 new MapSqlParameterSource[]{new MapSqlParameterSource()
                         .addValue("userId", userId)
