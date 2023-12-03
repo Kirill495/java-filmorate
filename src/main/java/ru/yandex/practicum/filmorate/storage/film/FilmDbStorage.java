@@ -186,8 +186,8 @@ public class FilmDbStorage implements FilmStorage {
                 " mpa.description as mpa_name" +
                 " FROM MOVIES m JOIN MPA_RATING mpa ON m.rating=mpa.rating_id" +
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m2" +
-                " WHERE USER_ID = :userId AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m1" +
-                " WHERE USER_ID = :friendId ORDER BY MOVIE_ID DESC));";
+                " WHERE USER_ID = ? AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES m1" +
+                " WHERE USER_ID = ? ORDER BY MOVIE_ID DESC));";
         List<Film> films = jdbcTemplate.query(sqlQuery,
                 new MapSqlParameterSource[]{new MapSqlParameterSource()
                         .addValue("userId", userId)
