@@ -114,7 +114,7 @@ public class FilmDbStorage implements FilmStorage {
                         "	WHERE ul1.user_id = :user_id\n" +
                         "	GROUP BY  ul2.user_id\n" +
                         "	HAVING ul2.user_id IN\n" +
-                        "				--Найти всех пользователей имеющих лайки, которых нет в данном пользователе:\n" +
+                        "				--Найти всех пользователей имеющих лайки, которых нет у данного пользователя:\n" +
                         "				(SELECT DISTINCT ul.USER_ID\n" +
                         "				FROM movies_likes AS ul			\n" +
                         "				LEFT JOIN movies_likes ul2 ON ul.movie_id = ul2.movie_id AND ul2.user_id = :user_id\n" +
