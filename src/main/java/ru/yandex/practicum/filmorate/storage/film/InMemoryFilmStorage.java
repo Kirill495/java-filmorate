@@ -7,11 +7,9 @@ import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -47,15 +45,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         return new ArrayList<>(films.values());
     }
 
-    @Override
-    public List<Film> getTheMostPopularFilms(int count) {
-        return getFilms()
-                .stream()
-                .sorted(Comparator.comparingInt(film -> -film.getLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
-    }
-
 
     @Override
     public Film getFilm(int id) {
@@ -64,22 +53,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostPopularFilmsFilterByYearAndGenre(int limit, int genreId, int year) {
+    public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
         throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
                 "попробуйте через FilmDbStorage");
     }
-
-    @Override
-    public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
-        throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
-                "попробуйте через FilmDbStorage");
-    }
-
-    @Override
-    public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
-        throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
-                "попробуйте через FilmDbStorage");
-    }
-
 
 }
