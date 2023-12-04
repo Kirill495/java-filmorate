@@ -47,6 +47,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
 
     @Override
+    public List<Film> getSortedFilms(int id, String sortBy) {
+        return null;
+    }
+
+    @Override
     public Film getFilm(int id) {
         log.trace("Storage. Получение фильма по идентификатору {}", id);
         return films.get(id);
@@ -58,4 +63,14 @@ public class InMemoryFilmStorage implements FilmStorage {
                 "попробуйте через FilmDbStorage");
     }
 
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        return new ArrayList<>();
+    }
 }

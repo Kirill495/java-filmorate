@@ -17,10 +17,13 @@ public class FilmService {
     private final FilmStorage storage;
     private final UserService userService;
 
+    private final DirectorService directorService;
+
     @Autowired
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService) {
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService, DirectorService directorService) {
         this.storage = storage;
         this.userService = userService;
+        this.directorService = directorService;
     }
 
     public Film getFilm(int id) {
@@ -77,5 +80,14 @@ public class FilmService {
 
     public List<Film> getTheMostGenreYearPopularFilms(Integer limit, Integer genreId, Integer year) {
         return storage.getMostPopularFilmsFilterAll(limit, genreId, year);
+    }
+
+    public List<Film> getSortedFilms(int id, String sortBy) {
+        directorService.getDirectorById(id);
+        return storage.getSortedFilms(id, sortBy);
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return storage.getCommonFilms(userId, friendId);
     }
 }

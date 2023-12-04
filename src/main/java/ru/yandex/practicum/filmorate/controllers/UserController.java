@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -24,9 +26,12 @@ public class UserController {
 
     private final UserService service;
 
+    private final RecommendationsService recommendationsService;
+
     @Autowired
-    public UserController(UserService service) {
+    public UserController(UserService service, RecommendationsService recommendationsService) {
         this.service = service;
+        this.recommendationsService = recommendationsService;
     }
 
     @PostMapping
@@ -54,7 +59,7 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        service.addFriend(friendId, id);
+        service.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
@@ -65,6 +70,11 @@ public class UserController {
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
         return service.getFriends(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable int id) {
+        return recommendationsService.getRecommendations(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
