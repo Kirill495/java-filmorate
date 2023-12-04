@@ -1,15 +1,8 @@
-DROP TABLE IF EXISTS  movies_genres;
-DROP TABLE IF EXISTS  MOVIES_LIKES;
-DROP TABLE IF EXISTS genres;
-DROP TABLE IF EXISTS USER_RELATIONS;
 DROP TABLE IF EXISTS reviews_estimations;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_movie_unique;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_not_null;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_movie_not_null;
 DROP TABLE IF EXISTS reviews;
-drop table if exists users;
-drop table if exists movies;
-drop table if exists mpa_rating;
 drop table mpa_rating IF EXISTS CASCADE;
 drop table genres IF EXISTS CASCADE;
 drop table movies IF EXISTS CASCADE;
