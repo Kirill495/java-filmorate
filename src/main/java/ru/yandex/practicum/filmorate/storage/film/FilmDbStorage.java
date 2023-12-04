@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Qualifier("FilmDbStorage")
+@Slf4j
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -126,6 +128,50 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getRecommendations(int userId) {
+        String sqlQuery =
+                "--Получаем итоговый список фильмов из той же movies_likes через лайки:-------------------------\n" +
+                        "SELECT DISTINCT\n" +
+                        "    movies.movie_id as id,\n" +
+                        "    movies.title AS movie_title,\n" +
+                        "    movies.description AS movie_description,\n" +
+                        "    movies.release_date,\n" +
+                        "    movies.duration,\n" +
+                        "    CASE WHEN movies.rating IS NULL THEN 0 ELSE movies.rating END AS rating_id,\n" +
+                        "    MPA_rating.title AS rating_title,\n" +
+                        "    MPA_rating.DESCRIPTION AS rating_description\n" +
+                        "FROM movies_likes ul\n" +
+                        "LEFT JOIN movies_likes ul2 ON ul.movie_id = ul2.movie_id AND ul2.user_id = :user_id\n" +
+                        "INNER JOIN movies ON ul.movie_id = movies.movie_id\n" +
+                        "LEFT JOIN MPA_rating ON movies.rating = MPA_rating.rating_id\n" +
+                        "---------------------------------------------------------------------------------------------\n" +
+                        "WHERE ul2.user_id IS NULL AND ul.user_id IN \n" +
+                        "	--Найдем пользователя с которым больше всего лайков--------------------------------------\n" +
+                        "	(SELECT \n" +
+                        "		ul2.user_id\n" +
+                        "	FROM movies_likes ul1\n" +
+                        "	INNER JOIN movies_likes ul2\n" +
+                        "		ON ul1.movie_id = ul2.movie_id\n" +
+                        "			AND ul1.user_id != ul2.user_id --не учитываем этот же фильм\n" +
+                        "	WHERE ul1.user_id = :user_id\n" +
+                        "	GROUP BY  ul2.user_id\n" +
+                        "	HAVING ul2.user_id IN\n" +
+                        "				--Найти всех пользователей имеющих лайки, которых нет у данного пользователя:\n" +
+                        "				(SELECT DISTINCT ul.USER_ID\n" +
+                        "				FROM movies_likes AS ul			\n" +
+                        "				LEFT JOIN movies_likes ul2 ON ul.movie_id = ul2.movie_id AND ul2.user_id = :user_id\n" +
+                        "				WHERE ul2.user_id IS NULL\n" +
+                        "				)\n" +
+                        "	ORDER BY COUNT(*) DESC LIMIT 1 --Сортируем по количеству лайков и отбираем первый сверху \n" +
+                        "	)"
+                ;
+        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(sqlQuery, Map.of("user_id", userId), (rs, rowNum) -> createNewFilm(rs));
+        fillInGenres(films);
+        fillInLikes(films);
+        return films;
+    }
+
+    @Override
     public Film getFilm(int id) {
         String sqlQuery =
                 "SELECT\n" +
@@ -170,8 +216,8 @@ public class FilmDbStorage implements FilmStorage {
     private void updateLikes(Set<Integer> likes, int filmId) {
         jdbcTemplate.update("DELETE FROM MOVIES_LIKES WHERE movie_id = ?", filmId);
         String sqlQuery = "INSERT INTO MOVIES_LIKES VALUES (?, ?)";
-        likes.forEach(userId -> {
-            jdbcTemplate.update(sqlQuery, filmId, userId);
+        likes.forEach(user_id -> {
+            jdbcTemplate.update(sqlQuery, filmId, user_id);
         });
     }
 
@@ -222,6 +268,32 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery = "SELECT\n" +
+                "user_likes.MOVIE_ID AS id,\n" +
+                "MOVIES.TITLE AS movie_title,\n" +
+                "MOVIES.DESCRIPTION AS movie_description,\n" +
+                "MOVIES.RELEASE_DATE AS release_date,\n" +
+                "MOVIES.DURATION AS duration,\n" +
+                "MPA_RATING.rating_id as rating_id,\n" +
+                "MPA_RATING.description as rating_description,\n" +
+                "MPA_RATING.title as rating_title\n" +
+                "FROM\n" +
+                "MOVIES_LIKES as user_likes\n" +
+                "INNER JOIN MOVIES_LIKES AS friend_likes\n" +
+                "ON user_likes.MOVIE_ID = friend_likes.MOVIE_ID\n" +
+                "AND friend_likes.USER_ID = ?\n" +
+                "INNER JOIN MOVIES\n" +
+                "INNER JOIN MPA_RATING\n" +
+                "ON MOVIES.rating = MPA_RATING.rating_id\n" +
+                "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
+                "WHERE\n" +
+                "user_likes.USER_ID = ?";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
+    }
+
     private List<Film> getFilmsWithRating(int count) {
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
@@ -249,7 +321,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private List<Film> getFilmsWithoutRating(int count) {
-
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
                 "    movies.title AS movie_title,\n" +

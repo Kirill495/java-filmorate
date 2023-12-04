@@ -91,4 +91,8 @@ public class FilmService {
         directorService.getDirectorById(id);
         return storage.getSortedFilms(id, sortBy);
     }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return storage.getCommonFilms(userId, friendId);
+    }
 }

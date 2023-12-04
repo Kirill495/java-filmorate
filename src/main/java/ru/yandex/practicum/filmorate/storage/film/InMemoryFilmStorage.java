@@ -72,4 +72,14 @@ public class InMemoryFilmStorage implements FilmStorage {
         throw new UnsupportedOperationException(("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
                 "попробуйте через FilmDbStorage"));
     }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getRecommendations(int userId) {
+        return new ArrayList<>();
+    }
 }
