@@ -18,4 +18,6 @@ public interface FilmStorage {
 
     public boolean deleteFilm(int filmId);
 
+
+    List<Film> getSortedFilms(int id, String sortBy);
 }

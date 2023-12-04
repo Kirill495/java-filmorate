@@ -35,8 +35,8 @@ public class UserDbStorage implements UserStorage {
                 "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
                 "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
                 "WHERE\n" +
-                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id\n" +
-                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)\n" +
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id AND USER_RELATIONS_APPROVER.ACCEPTED\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id)\n" +
                 "INTERSECT \n" +
                 "SELECT\n" +
                 "    users.USER_ID, users.email, users.login, users.name, users.birthday\n" +
@@ -45,8 +45,8 @@ public class UserDbStorage implements UserStorage {
                 "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
                 "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
                 "WHERE\n" +
-                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id\n" +
-                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)";
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id AND USER_RELATIONS_APPROVER.ACCEPTED\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id)";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
                 .query(
                         sqlQuery,
