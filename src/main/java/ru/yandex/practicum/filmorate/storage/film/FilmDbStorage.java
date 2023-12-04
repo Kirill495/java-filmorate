@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Qualifier("FilmDbStorage")
+@Slf4j
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -267,6 +269,32 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery = "SELECT\n" +
+                "user_likes.MOVIE_ID AS id,\n" +
+                "MOVIES.TITLE AS movie_title,\n" +
+                "MOVIES.DESCRIPTION AS movie_description,\n" +
+                "MOVIES.RELEASE_DATE AS release_date,\n" +
+                "MOVIES.DURATION AS duration,\n" +
+                "MPA_RATING.rating_id as rating_id,\n" +
+                "MPA_RATING.description as rating_description,\n" +
+                "MPA_RATING.title as rating_title\n" +
+                "FROM\n" +
+                "MOVIES_LIKES as user_likes\n" +
+                "INNER JOIN MOVIES_LIKES AS friend_likes\n" +
+                "ON user_likes.MOVIE_ID = friend_likes.MOVIE_ID\n" +
+                "AND friend_likes.USER_ID = ?\n" +
+                "INNER JOIN MOVIES\n" +
+                "INNER JOIN MPA_RATING\n" +
+                "ON MOVIES.rating = MPA_RATING.rating_id\n" +
+                "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
+                "WHERE\n" +
+                "user_likes.USER_ID = ?";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
+    }
+
     private List<Film> getFilmsWithRating(int count) {
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
@@ -294,7 +322,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private List<Film> getFilmsWithoutRating(int count) {
-
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
                 "    movies.title AS movie_title,\n" +
