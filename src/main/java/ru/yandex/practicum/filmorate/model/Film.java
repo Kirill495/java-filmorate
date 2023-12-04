@@ -36,5 +36,4 @@ public class Film {
                 "rating", mpa == null ? 0 : mpa.getId());
     }
 
-    private List<String> directors = new ArrayList<>();
 }
