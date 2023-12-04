@@ -60,5 +60,4 @@ public class ErrorHandler {
     public Map<String, String> handleCommonException(final RuntimeException exception) {
         return Map.of("error", exception.getMessage());
     }
-
 }
