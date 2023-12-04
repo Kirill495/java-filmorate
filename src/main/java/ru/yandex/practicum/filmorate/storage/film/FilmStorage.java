@@ -19,7 +19,6 @@ public interface FilmStorage {
     List<Film> getRecommendations(int userId);
 
     List<Film> getSortedFilms(int id, String sortBy);
+
     List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year);
-
-
 }
