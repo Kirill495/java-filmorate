@@ -8,6 +8,8 @@ ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_not_null;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_movie_not_null;
 DROP TABLE IF EXISTS reviews;
 drop table if exists users;
+drop table if exists movies_directors;
+drop table if exists directors;
 drop table if exists movies;
 drop table if exists mpa_rating;
 

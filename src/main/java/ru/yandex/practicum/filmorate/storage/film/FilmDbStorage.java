@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -16,9 +17,7 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -155,6 +154,34 @@ public class FilmDbStorage implements FilmStorage {
         return films.get(0);
     }
 
+    public List<Film> getFilms(List<Integer> ids) {
+        String sqlQuery =
+                "SELECT\n" +
+                        "    movie_id as id,\n" +
+                        "    movies.title AS movie_title,\n" +
+                        "    movies.description AS movie_description,\n" +
+                        "    release_date,\n" +
+                        "    duration,\n" +
+                        "    CASE WHEN movies.rating IS NULL THEN 0 ELSE movies.rating END AS rating_id,\n" +
+                        "    MPA_rating.title AS rating_title,\n" +
+                        "    MPA_rating.DESCRIPTION AS rating_description\n" +
+                        "FROM\n" +
+                        "    movies " +
+                        "    LEFT JOIN MPA_rating " +
+                        "        ON movies.rating = MPA_rating.rating_id\n" +
+                        "WHERE\n" +
+                        "    movies.movie_id in (:movie_ids)";
+        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate)
+                .query(sqlQuery, Map.of("movie_ids", ids), (rs, rowNum) -> createNewFilm(rs));
+        if (films.size() == 0) {
+            return null;
+        }
+        fillInGenres(films);
+        fillInLikes(films);
+        fillInDirectors(films);
+        return films;
+    }
+
     private void updateFilmGenres(Film film) {
         updateFilmGenres(film, film.getId());
     }
@@ -221,6 +248,51 @@ public class FilmDbStorage implements FilmStorage {
         fillInLikes(films);
         fillInDirectors(films);
         return films;
+    }
+
+    @Override
+    public List<Film> getFilmsBySearchParameters(String query, Set<String> queryParameters) {
+        StringBuilder sqlQuery = new StringBuilder();
+        if (queryParameters.contains("TITLE")) {
+            sqlQuery.append(
+                    "SELECT\n" +
+                    "    MOVIE_ID\n" +
+                    "FROM\n" +
+                    "    MOVIES\n" +
+                    "WHERE\n" +
+                    "    UPPER(MOVIES.TITLE) LIKE :query");
+        }
+        if (queryParameters.contains("DIRECTOR")) {
+            if (sqlQuery.length() != 0) {
+                sqlQuery.append("\n" +
+                    "UNION\n" +
+                    "\n");
+            }
+            sqlQuery.append(
+                    "SELECT\n" +
+                    "    MOVIE_ID\n" +
+                    "FROM\n" +
+                    "    DIRECTORS join movies_directors ON DIRECTORS.director_id = movies_directors.director_id\n" +
+                    "WHERE\n" +
+                    "    UPPER(DIRECTORS.NAME) LIKE :query");
+        }
+        List<Integer> filmsIds;
+        try {
+            filmsIds = new NamedParameterJdbcTemplate(jdbcTemplate)
+                    .queryForList(
+                            sqlQuery.toString(),
+                            Map.of("query", "%" + query.toUpperCase() + "%"),
+                            Integer.class);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+        if (filmsIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return getFilms(filmsIds)
+                .stream()
+                .sorted(Comparator.comparingInt(film -> -1 * film.getDirectors().size()))
+                .collect(Collectors.toList());
     }
 
     private List<Film> getFilmsWithRating(int count) {

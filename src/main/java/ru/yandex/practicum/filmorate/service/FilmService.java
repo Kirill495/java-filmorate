@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.film.IncorrectSearchFilmParameterException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
@@ -72,6 +73,14 @@ public class FilmService {
 
     public List<Film> getTheMostPopularFilms(int count) {
         return storage.getTheMostPopularFilms(count);
+    }
+
+    public List<Film> searchFilms(String query, String filter) {
+        Set<String> filterParams = Set.of(filter.toUpperCase().split(","));
+        if (!filterParams.contains("TITLE") && !filterParams.contains("DIRECTOR")) {
+            throw new IncorrectSearchFilmParameterException();
+        }
+        return storage.getFilmsBySearchParameters(query, filterParams);
     }
 
     private Film getFilmInner(int id) {

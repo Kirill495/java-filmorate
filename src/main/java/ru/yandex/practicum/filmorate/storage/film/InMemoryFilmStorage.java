@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -58,6 +59,11 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getSortedFilms(int id, String sortBy) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getFilmsBySearchParameters(String query, Set<String> queryParameters) {
         return null;
     }
 
