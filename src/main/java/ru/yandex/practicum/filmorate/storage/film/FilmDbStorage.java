@@ -227,20 +227,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        /* String sqlQuery = "SELECT\n" +
-                " m.movie_id as id,\n" +
-                " m.title as movie_title,\n" +
-                " m.description as movie_description,\n" +
-                " m.release_date as release_date,\n" +
-                " m.duration as duration,\n" +
-                " mpa_rating.rating_id as rating_id,\n" +
-                " mpa_rating.description as rating_description,\n" +
-                " mpa_rating.title as rating_title\n" +
-                " FROM MOVIES m JOIN MPA_RATING ON m.rating=mpa_rating.rating_id\n" +
-                " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES\n" +
-                " WHERE USER_ID = ? AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES\n" +
-                " WHERE USER_ID = ? ORDER BY MOVIE_ID DESC))"; */
-        // Trying Kirill's string
         String sqlQuery = "SELECT\n" +
                 "user_likes.MOVIE_ID AS id,\n" +
                 "MOVIES.TITLE AS movie_title,\n" +
