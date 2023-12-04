@@ -227,7 +227,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String sqlQuery = "SELECT\n" +
+        /* String sqlQuery = "SELECT\n" +
                 " m.movie_id as id,\n" +
                 " m.title as movie_title,\n" +
                 " m.description as movie_description,\n" +
@@ -239,7 +239,28 @@ public class FilmDbStorage implements FilmStorage {
                 " FROM MOVIES m JOIN MPA_RATING ON m.rating=mpa_rating.rating_id\n" +
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES\n" +
                 " WHERE USER_ID = ? AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES\n" +
-                " WHERE USER_ID = ? ORDER BY MOVIE_ID DESC))";
+                " WHERE USER_ID = ? ORDER BY MOVIE_ID DESC))"; */
+        //Trying Kirill's string
+        String sqlQuery = "SELECT\n" +
+                "user_likes.MOVIE_ID AS id,\n" +
+                "MOVIES.TITLE AS movie_title,\n" +
+                "MOVIES.DESCRIPTION AS movie_description,\n" +
+                "MOVIES.RELEASE_DATE AS release_date,\n" +
+                "MOVIES.DURATION AS duration,\n" +
+                "MPA_RATING.rating_id as rating_id,\n" +
+                "MPA_RATING.description as rating_description,\n" +
+                "MPA_RATING.title as rating_title\n" +
+                "FROM\n" +
+                "MOVIES_LIKES as user_likes\n" +
+                "INNER JOIN MOVIES_LIKES AS friend_likes\n" +
+                "ON user_likes.MOVIE_ID = friend_likes.MOVIE_ID\n" +
+                "AND friend_likes.USER_ID = ?\n" +
+                "INNER JOIN MOVIES\n" +
+                "INNER JOIN MPA_RATING\n" +
+                "ON MOVIES.rating = MPA_RATING.rating_id\n" +
+                "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
+                "WHERE\n" +
+                "user_likes.USER_ID = ?";
 
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
     }
