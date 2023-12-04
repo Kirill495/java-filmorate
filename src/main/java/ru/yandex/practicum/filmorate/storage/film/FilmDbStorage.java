@@ -240,7 +240,7 @@ public class FilmDbStorage implements FilmStorage {
                 " WHERE MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES\n" +
                 " WHERE USER_ID = ? AND MOVIE_ID IN (SELECT MOVIE_ID FROM MOVIES_LIKES\n" +
                 " WHERE USER_ID = ? ORDER BY MOVIE_ID DESC))"; */
-        //Trying Kirill's string
+        // Trying Kirill's string
         String sqlQuery = "SELECT\n" +
                 "user_likes.MOVIE_ID AS id,\n" +
                 "MOVIES.TITLE AS movie_title,\n" +
