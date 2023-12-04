@@ -418,7 +418,7 @@ public class FilmDbStorage implements FilmStorage {
             List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, genreId, limit);
             fillInGenres(films);
             fillInLikes(films);
-
+            fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
             throw new RequestSqlException(e);
@@ -442,7 +442,7 @@ public class FilmDbStorage implements FilmStorage {
             List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), genreId, limit);
             fillInGenres(films);
             fillInLikes(films);
-
+            fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
             throw new RequestSqlException(e);
@@ -466,7 +466,7 @@ public class FilmDbStorage implements FilmStorage {
             List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, limit);
             fillInGenres(films);
             fillInLikes(films);
-
+            fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
             throw new RequestSqlException(e);
