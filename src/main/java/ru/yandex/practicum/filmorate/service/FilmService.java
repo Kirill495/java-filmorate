@@ -70,16 +70,16 @@ public class FilmService {
         return false;
     }
 
-    public List<Film> getTheMostPopularFilms(int count) {
-        return storage.getTheMostPopularFilms(count);
-    }
-
     private Film getFilmInner(int id) {
         Film film = storage.getFilm(id);
         if (film == null) {
             throw new FilmNotFoundException(id);
         }
         return film;
+    }
+
+    public List<Film> getTheMostGenreYearPopularFilms(Integer limit, Integer genreId, Integer year) {
+        return storage.getMostPopularFilmsFilterAll(limit, genreId, year);
     }
 
     public List<Film> getSortedFilms(int id, String sortBy) {
