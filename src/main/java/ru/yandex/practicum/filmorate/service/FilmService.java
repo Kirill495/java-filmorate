@@ -70,10 +70,6 @@ public class FilmService {
         return false;
     }
 
-    public List<Film> getTheMostPopularFilms(int count) {
-        return storage.getTheMostPopularFilms(count);
-    }
-
     private Film getFilmInner(int id) {
         Film film = storage.getFilm(id);
         if (film == null) {
@@ -82,8 +78,21 @@ public class FilmService {
         return film;
     }
 
+    public boolean deleteFilm(int filmId) {
+        getFilmInner(filmId);
+        return storage.deleteFilm(filmId);
+    }
+
+    public List<Film> getTheMostGenreYearPopularFilms(Integer limit, Integer genreId, Integer year) {
+        return storage.getMostPopularFilmsFilterAll(limit, genreId, year);
+    }
+
     public List<Film> getSortedFilms(int id, String sortBy) {
         directorService.getDirectorById(id);
         return storage.getSortedFilms(id, sortBy);
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return storage.getCommonFilms(userId, friendId);
     }
 }

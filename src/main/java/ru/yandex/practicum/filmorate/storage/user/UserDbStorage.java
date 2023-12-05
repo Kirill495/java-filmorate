@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateUserFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -34,8 +35,8 @@ public class UserDbStorage implements UserStorage {
                 "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
                 "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
                 "WHERE\n" +
-                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id\n" +
-                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)\n" +
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id AND USER_RELATIONS_APPROVER.ACCEPTED\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id)\n" +
                 "INTERSECT \n" +
                 "SELECT\n" +
                 "    users.USER_ID, users.email, users.login, users.name, users.birthday\n" +
@@ -44,8 +45,8 @@ public class UserDbStorage implements UserStorage {
                 "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
                 "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
                 "WHERE\n" +
-                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id\n" +
-                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)";
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id AND USER_RELATIONS_APPROVER.ACCEPTED\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id)";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
                 .query(
                         sqlQuery,
@@ -168,5 +169,10 @@ public class UserDbStorage implements UserStorage {
                     relation.setApproverId(rs.getInt("approver_id"));
                     return relation;
                 }));
+    }
+
+    public boolean deleteUser(@PathVariable int userId) {
+        String sqlQuery = "DELETE FROM users WHERE user_id=?;";
+        return jdbcTemplate.update(sqlQuery, userId) > 0;
     }
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -80,8 +81,9 @@ public class UserService {
 
     public List<User> getFriends(int id) {
         User user = getUserInner(id);
-        return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
-                .map(r -> ((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
+        return user.getRelations().stream()
+                .filter(rel -> (rel.isAccepted() || rel.getRequesterId() == id))
+                .map(r -> ((r.getRequesterId() == id ? r.getApproverId() : r.getRequesterId())))
                 .map(storage::getUser)
                 .collect(Collectors.toList());
     }
@@ -105,5 +107,10 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+    }
+
+    public boolean deleteUser(@PathVariable int userId) {
+        getUserInner(userId);
+        return storage.deleteUser(userId);
     }
 }

@@ -14,7 +14,14 @@ public interface FilmStorage {
 
     Film getFilm(int id);
 
-    List<Film> getTheMostPopularFilms(int count);
+    List<Film> getCommonFilms(int userId, int friendId);
+
+    List<Film> getRecommendations(int userId);
+
+    public boolean deleteFilm(int filmId);
+
 
     List<Film> getSortedFilms(int id, String sortBy);
+
+    List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year);
 }
