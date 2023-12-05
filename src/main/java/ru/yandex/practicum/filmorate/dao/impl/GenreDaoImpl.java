@@ -48,4 +48,5 @@ public class GenreDaoImpl implements GenreDao {
         }
         return genre;
     }
+
 }
