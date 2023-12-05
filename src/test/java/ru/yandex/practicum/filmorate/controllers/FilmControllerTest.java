@@ -22,8 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ru.yandex.practicum.filmorate.dao.impl.DirectorDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.DirectorService;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -61,7 +63,7 @@ class FilmControllerTest {
 
         FilmStorage filmStorage = new InMemoryFilmStorage();
         UserStorage userStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(userStorage);
+        UserService userService = new UserService(userStorage, new EventService(new EventDaoImpl(new JdbcTemplate())));
         DirectorDaoImpl directorStorage = new DirectorDaoImpl(new JdbcTemplate());
         DirectorService directorService = new DirectorService(directorStorage);
         FilmService filmService = new FilmService(filmStorage, userService, directorService);

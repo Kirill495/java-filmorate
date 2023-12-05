@@ -56,3 +56,12 @@ CREATE TABLE IF NOT EXISTS movies_likes (
     user_id INT REFERENCES users(user_id),
     PRIMARY KEY (movie_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS events (
+	event_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	event_time timestamp,
+	user_id INT REFERENCES users(user_id),
+	event_type VARCHAR NOT NULL,
+	operation VARCHAR NOT NULL,
+	entityId INT NOT NULL
+);
