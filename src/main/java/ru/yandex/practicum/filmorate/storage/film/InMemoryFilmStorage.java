@@ -58,11 +58,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public boolean deleteFilm(int filmId) {
+        throw new UnsupportedOperationException(("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
+                "попробуйте через FilmDbStorage"));
+    }
+
+    @Override
     public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
         throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryFilmStorage, " +
                 "попробуйте через FilmDbStorage");
     }
-
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {

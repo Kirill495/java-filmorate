@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS movies (
     description VARCHAR DEFAULT '',
     release_date DATE,
     duration INT,
-    rating INT references mpa_rating(rating_id)
+    rating INT references mpa_rating(rating_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS movies_directors (
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS movies_directors (
 );
 
 CREATE TABLE IF NOT EXISTS movies_genres (
-    movie_id INT REFERENCES movies(movie_id),
+    movie_id INT REFERENCES movies(movie_id) ON DELETE CASCADE,
     genre_id INT REFERENCES genres(genre_id),
     PRIMARY KEY (movie_id, genre_id)
 );
@@ -57,15 +57,15 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS user_relations (
-    requester_id INT REFERENCES users(user_id),
-    approver_id INT REFERENCES users(user_id),
+    requester_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    approver_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     accepted boolean NOT NULL DEFAULT FALSE,
     PRIMARY KEY (requester_id, approver_id)
 );
 
 CREATE TABLE IF NOT EXISTS movies_likes (
-    movie_id INT REFERENCES movies(movie_id),
-    user_id INT REFERENCES users(user_id),
+    movie_id INT REFERENCES movies(movie_id) ON DELETE CASCADE,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     PRIMARY KEY (movie_id, user_id)
 );
 

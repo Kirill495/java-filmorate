@@ -80,7 +80,6 @@ public class FilmDbStorage implements FilmStorage {
                 .executeAndReturnKey(film.toMap()).intValue();
         updateFilmGenres(film, filmId);
         updateLikes(film.getLikes(), filmId);
-        updateFilmDirectors(film, filmId);
         return getFilm(filmId);
     }
 
@@ -203,6 +202,132 @@ public class FilmDbStorage implements FilmStorage {
         return films.get(0);
     }
 
+    public List<Film> getTheMostPopularFilms(int count) {
+        List<Film> films = getFilmsWithRating(count);
+        if (films.size() < count) {
+            films.addAll(getFilmsWithoutRating(count - films.size()));
+        }
+        fillInGenres(films);
+        fillInLikes(films);
+        fillInDirectors(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery = "SELECT\n" +
+                "user_likes.MOVIE_ID AS id,\n" +
+                "MOVIES.TITLE AS movie_title,\n" +
+                "MOVIES.DESCRIPTION AS movie_description,\n" +
+                "MOVIES.RELEASE_DATE AS release_date,\n" +
+                "MOVIES.DURATION AS duration,\n" +
+                "MPA_RATING.rating_id as rating_id,\n" +
+                "MPA_RATING.description as rating_description,\n" +
+                "MPA_RATING.title as rating_title\n" +
+                "FROM\n" +
+                "MOVIES_LIKES as user_likes\n" +
+                "INNER JOIN MOVIES_LIKES AS friend_likes\n" +
+                "ON user_likes.MOVIE_ID = friend_likes.MOVIE_ID\n" +
+                "AND friend_likes.USER_ID = ?\n" +
+                "INNER JOIN MOVIES\n" +
+                "INNER JOIN MPA_RATING\n" +
+                "ON MOVIES.rating = MPA_RATING.rating_id\n" +
+                "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
+                "WHERE\n" +
+                "user_likes.USER_ID = ?";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
+    }
+
+
+    @Override
+    public boolean deleteFilm(int filmId) {
+        String sqlQuery = "DELETE FROM movies WHERE movie_id=?;";
+        return jdbcTemplate.update(sqlQuery, filmId) > 0;
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
+        if (year == null && genreId == null) {
+            return getTheMostPopularFilms(limit);
+        } else if (year != null && genreId == null) {
+            return getMostPopularFilmsFilterByYear(limit, year);
+        } else if (year == null && genreId != null) {
+            return getMostPopularFilmsFilterByGenre(limit, genreId);
+        } else {
+            return requestPopularFilmsFilterByYearAndGenre(limit, genreId, year);
+        }
+    }
+
+    public List<Film> requestPopularFilmsFilterByYearAndGenre(int limit, int genreId, int year) {
+        try {
+            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
+                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
+                    "FROM movies AS m " +
+                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                    "WHERE EXTRACT(YEAR FROM m.release_date)=? AND g.genre_id=? " +
+                    "GROUP BY m.movie_id " +
+                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "LIMIT ?;";
+
+            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, genreId, limit);
+            fillInGenres(films);
+            fillInLikes(films);
+            fillInDirectors(films);
+            return films;
+        } catch (DataAccessException e) {
+            throw new RequestSqlException(e);
+        }
+    }
+
+    public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
+        try {
+            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, m.duration, " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
+                    "FROM movies AS m " +
+                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                    "WHERE g.genre_id=? " +
+                    "GROUP BY m.movie_id " +
+                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "LIMIT ?;";
+            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), genreId, limit);
+            fillInGenres(films);
+            fillInLikes(films);
+            fillInDirectors(films);
+            return films;
+        } catch (DataAccessException e) {
+            throw new RequestSqlException(e);
+        }
+    }
+
+    public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
+        try {
+            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
+                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
+                    "FROM movies AS m " +
+                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                    "WHERE EXTRACT(YEAR FROM m.release_date)=? " +
+                    "GROUP BY m.movie_id " +
+                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "LIMIT ?;";
+            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, limit);
+            fillInGenres(films);
+            fillInLikes(films);
+            fillInDirectors(films);
+            return films;
+        } catch (DataAccessException e) {
+            throw new RequestSqlException(e);
+        }
+    }
+
     private void updateFilmGenres(Film film) {
         updateFilmGenres(film, film.getId());
     }
@@ -257,43 +382,6 @@ public class FilmDbStorage implements FilmStorage {
         }
         film.setMpa(ratingItem);
         return film;
-    }
-
-    public List<Film> getTheMostPopularFilms(int count) {
-        List<Film> films = getFilmsWithRating(count);
-        if (films.size() < count) {
-            films.addAll(getFilmsWithoutRating(count - films.size()));
-        }
-        fillInGenres(films);
-        fillInLikes(films);
-        fillInDirectors(films);
-        return films;
-    }
-
-    @Override
-    public List<Film> getCommonFilms(int userId, int friendId) {
-        String sqlQuery = "SELECT\n" +
-                "user_likes.MOVIE_ID AS id,\n" +
-                "MOVIES.TITLE AS movie_title,\n" +
-                "MOVIES.DESCRIPTION AS movie_description,\n" +
-                "MOVIES.RELEASE_DATE AS release_date,\n" +
-                "MOVIES.DURATION AS duration,\n" +
-                "MPA_RATING.rating_id as rating_id,\n" +
-                "MPA_RATING.description as rating_description,\n" +
-                "MPA_RATING.title as rating_title\n" +
-                "FROM\n" +
-                "MOVIES_LIKES as user_likes\n" +
-                "INNER JOIN MOVIES_LIKES AS friend_likes\n" +
-                "ON user_likes.MOVIE_ID = friend_likes.MOVIE_ID\n" +
-                "AND friend_likes.USER_ID = ?\n" +
-                "INNER JOIN MOVIES\n" +
-                "INNER JOIN MPA_RATING\n" +
-                "ON MOVIES.rating = MPA_RATING.rating_id\n" +
-                "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
-                "WHERE\n" +
-                "user_likes.USER_ID = ?";
-
-        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
     }
 
     private List<Film> getFilmsWithRating(int count) {
@@ -373,7 +461,7 @@ public class FilmDbStorage implements FilmStorage {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue("ids", filmsIds);
         String sqlQuery = "SELECT MOVIE_ID, USER_ID\n" +
-                " FROM MOVIES_LIKES WHERE MOVIE_ID in (:ids)";
+                "FROM MOVIES_LIKES WHERE MOVIE_ID in (:ids)";
         SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate).queryForRowSet(sqlQuery, parameters);
 
         while (rowSet.next()) {
@@ -384,92 +472,6 @@ public class FilmDbStorage implements FilmStorage {
                     .ifPresent(film -> {
                         film.getLikes().add(rowSet.getInt("user_id"));
                     });
-        }
-    }
-
-
-    @Override
-    public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
-        if (year == null && genreId == null) {
-            return getTheMostPopularFilms(limit);
-        } else if (year != null && genreId == null) {
-            return getMostPopularFilmsFilterByYear(limit, year);
-        } else if (year == null && genreId != null) {
-            return getMostPopularFilmsFilterByGenre(limit, genreId);
-        } else {
-            return requestPopularFilmsFilterByYearAndGenre(limit, genreId, year);
-        }
-    }
-
-    public List<Film> requestPopularFilmsFilterByYearAndGenre(int limit, int genreId, int year) {
-        try {
-            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
-                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
-                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
-                    "FROM movies AS m " +
-                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
-                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
-                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
-                    "WHERE EXTRACT(YEAR FROM m.release_date)=? AND g.genre_id=? " +
-                    "GROUP BY m.movie_id " +
-                    "ORDER BY COUNT(l.movie_id) DESC " +
-                    "LIMIT ?;";
-
-            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, genreId, limit);
-            fillInGenres(films);
-            fillInLikes(films);
-            fillInDirectors(films);
-            return films;
-        } catch (DataAccessException e) {
-            throw new RequestSqlException(e);
-        }
-    }
-
-
-    public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
-        try {
-            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, m.duration, " +
-                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
-                    "FROM movies AS m " +
-                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
-                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
-                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
-                    "WHERE g.genre_id=? " +
-                    "GROUP BY m.movie_id " +
-                    "ORDER BY COUNT(l.movie_id) DESC " +
-                    "LIMIT ?;";
-
-            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), genreId, limit);
-            fillInGenres(films);
-            fillInLikes(films);
-            fillInDirectors(films);
-            return films;
-        } catch (DataAccessException e) {
-            throw new RequestSqlException(e);
-        }
-    }
-
-    public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
-        try {
-            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
-                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
-                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
-                    "FROM movies AS m " +
-                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
-                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
-                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
-                    "WHERE EXTRACT(YEAR FROM m.release_date)=? " +
-                    "GROUP BY m.movie_id " +
-                    "ORDER BY COUNT(l.movie_id) DESC " +
-                    "LIMIT ?;";
-
-            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, limit);
-            fillInGenres(films);
-            fillInLikes(films);
-            fillInDirectors(films);
-            return films;
-        } catch (DataAccessException e) {
-            throw new RequestSqlException(e);
         }
     }
 
