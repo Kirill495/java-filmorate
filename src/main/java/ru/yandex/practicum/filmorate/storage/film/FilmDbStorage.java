@@ -383,6 +383,7 @@ public class FilmDbStorage implements FilmStorage {
         film.setMpa(ratingItem);
         return film;
     }
+
     private List<Film> getFilmsWithRating(int count) {
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
