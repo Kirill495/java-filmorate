@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.FeedDao;
 import ru.yandex.practicum.filmorate.model.Feed;
 
@@ -15,10 +15,11 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
-@Component
+@Repository
 public class FeedDaoImpl implements FeedDao {
     private final JdbcTemplate jdbcTemplate;
-
+    private static final String INSERT_NEW_FEED_QUERY =
+            "INSERT INTO feed (event_time, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
     @Autowired
     public FeedDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -26,12 +27,9 @@ public class FeedDaoImpl implements FeedDao {
 
     @Override
     public Feed postEvent(Feed feed) {
-        String sqlInsert = "INSERT INTO feed (event_time, user_id, event_type, operation, entity_id) " +
-                "VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlInsert, new String[]{"event_id"});
+            PreparedStatement stmt = connection.prepareStatement(INSERT_NEW_FEED_QUERY, new String[]{"event_id"});
             stmt.setTimestamp(1, new Timestamp(feed.getTimestamp()));
             stmt.setInt(2, feed.getUserId());
             stmt.setString(3, feed.getEventType());

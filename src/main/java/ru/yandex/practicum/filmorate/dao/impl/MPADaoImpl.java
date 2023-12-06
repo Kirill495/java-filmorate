@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.MPADao;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateMPAFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.mpa.MPANotFoundException;
@@ -13,7 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-@Component
+@Repository
 public class MPADaoImpl implements MPADao {
     private final JdbcTemplate jdbcTemplate;
 

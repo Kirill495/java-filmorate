@@ -4,7 +4,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.DirectorDao;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateDirectorFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.director.DirectorNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -14,8 +15,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-@Component
-public class DirectorDaoImpl implements ru.yandex.practicum.filmorate.dao.DirectorDao {
+@Repository
+public class DirectorDaoImpl implements DirectorDao {
 
     private final JdbcTemplate jdbcTemplate;
 
