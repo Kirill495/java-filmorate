@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Operation;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.UserRelation;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.List;
@@ -81,11 +84,11 @@ public class UserService {
 
     public List<User> getFriends(int id) {
         User user = getUserInner(id);
-        return user.getRelations().stream()
+        List<Integer> friendsIds = user.getRelations().stream()
                 .filter(rel -> (rel.isAccepted() || rel.getRequesterId() == id))
                 .map(r -> ((r.getRequesterId() == id ? r.getApproverId() : r.getRequesterId())))
-                .map(storage::getUser)
                 .collect(Collectors.toList());
+        return storage.getUsers(friendsIds);
     }
 
     public List<User> getCommonFriends(int id, int otherId) {

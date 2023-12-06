@@ -1,7 +1,15 @@
 package ru.yandex.practicum.filmorate.exceptions.film;
 
 public class IncorrectSearchFilmParameterException extends RuntimeException {
-    public IncorrectSearchFilmParameterException() {
-        super("Параметр запроса \"by\" должен содержать значения: DIRECTOR или TITLE");
+    public IncorrectSearchFilmParameterException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public IncorrectSearchFilmParameterException(Throwable cause) {
+        super(cause);
+    }
+
+    public IncorrectSearchFilmParameterException(String message) {
+        super(message);
     }
 }

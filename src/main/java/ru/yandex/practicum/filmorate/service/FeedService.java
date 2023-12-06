@@ -4,7 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FeedDao;
 import ru.yandex.practicum.filmorate.exceptions.feed.FeedPostEventUnknownEntityException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
+import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 
@@ -35,10 +40,11 @@ public class FeedService {
             throw new FeedPostEventUnknownEntityException(entity);
         }
 
-        eventStorage.postEvent(Feed.builder().setUserId(userId)
-                .setEventType(eventType.toString())
-                .setOperation(operation.toString())
-                .setEntityId(entityId)
+        eventStorage.postEvent(Feed.builder()
+                .withUserId(userId)
+                .withEventType(eventType.toString())
+                .withOperation(operation.toString())
+                .withEntityId(entityId)
                 .build());
     }
 

@@ -18,6 +18,8 @@ import java.util.function.Predicate;
 public class InMemoryUserStorage implements UserStorage {
 
     private final Map<Integer, User> users = new HashMap<>();
+    private static final String UNSUPPORTED_OPERATION =
+            "Этот метод невозможно вызвать через InMemoryUserStorage, попробуйте через UserDbStorage";
 
     @Override
     public User addUser(User user) {
@@ -58,18 +60,22 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
+    public List<User> getUsers(List<Integer> ids) {
+        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
+    }
+
+    @Override
     public User getUser(int id) {
         return users.get(id);
     }
 
     @Override
     public List<User> getCommonFriends(User mainUser, User otherUser) {
-        return null;
+        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
     }
 
     @Override
     public boolean deleteUser(@PathVariable int userId) {
-        throw new UnsupportedOperationException("Этот метод невозможно вызвать через InMemoryUserStorage, " +
-                "попробуйте через UserDbStorage");
+        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
     }
 }
