@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,8 +9,8 @@ import javax.validation.constraints.Size;
 @Data
 @NoArgsConstructor
 public class Director {
-    Integer id;
+    private Integer id;
     @NotBlank(message = "Name may not be blank")
     @Size(min = 1, max = 100, message = "Name may not be empty or to large")
-    String name;
+    private String name;
 }

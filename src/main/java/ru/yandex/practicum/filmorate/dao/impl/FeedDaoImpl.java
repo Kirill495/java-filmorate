@@ -9,8 +9,6 @@ import ru.yandex.practicum.filmorate.dao.FeedDao;
 import ru.yandex.practicum.filmorate.model.Feed;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +18,12 @@ public class FeedDaoImpl implements FeedDao {
     private final JdbcTemplate jdbcTemplate;
     private static final String INSERT_NEW_FEED_QUERY =
             "INSERT INTO feed (event_time, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
+    private static final String GET_USER_FEEDS_QUERY =
+            "SELECT f.event_id, f.event_time, f.user_id, f.event_type, f.operation, f.entity_id " +
+            "FROM feed AS f " +
+            "WHERE f.user_id = ? " +
+            "ORDER BY f.event_time";
+
     @Autowired
     public FeedDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -43,26 +47,16 @@ public class FeedDaoImpl implements FeedDao {
 
     @Override
     public List<Feed> getEvents(int userId) {
-        String sql = "SELECT f.event_id, f.event_time, f.user_id, f.event_type, f.operation, f.entity_id " +
-                "FROM feed AS f " +
-                "WHERE f.user_id = ? " +
-                "ORDER BY f.event_time";
-        return jdbcTemplate.query(sql, this::makeEvent, userId);
-    }
-
-    private Feed makeEvent(ResultSet rs, int rowNum) throws SQLException {
-        int eventId = rs.getInt("event_id");
-        long eventTime = rs.getTimestamp("event_time").getTime();
-        int userId = rs.getInt("user_id");
-        String eventType = rs.getString("event_type");
-        String operation = rs.getString("operation");
-        int entityId = rs.getInt("entity_id");
-        return Feed.builder().setEventId(eventId)
-                .setUserId(userId)
-                .setTimestamp(eventTime)
-                .setEventType(eventType)
-                .setOperation(operation)
-                .setEntityId(entityId)
-                .build();
+        return jdbcTemplate.query(
+                GET_USER_FEEDS_QUERY,
+                (rs, rowNum) -> (Feed.builder()
+                        .withEventId(rs.getInt("event_id"))
+                        .withTimestamp(rs.getTimestamp("event_time").getTime())
+                        .withUserId(rs.getInt("user_id"))
+                        .withEventType(rs.getString("event_type"))
+                        .withEntityId(rs.getInt("entity_id"))
+                        .withOperation(rs.getString("operation"))
+                        .build()),
+                userId);
     }
 }

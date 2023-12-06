@@ -25,6 +25,32 @@ import java.util.Set;
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String GET_LIST_OF_USERS_QUERY =
+            "SELECT\n" +
+            "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
+            "FROM \n" +
+            "     USERS WHERE USER_ID in (:user_ids);";
+    private static final String GET_USER_BY_ID_QUERY =
+            "SELECT\n" +
+            "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
+            "FROM\n" +
+            "     USERS\n" +
+            "WHERE\n" +
+            "    USER_ID = :user_id;";
+    private static final String GET_ALL_USERS_QUERY =
+            "SELECT\n" +
+            "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
+            "FROM \n" +
+            "     USERS;";
+    private static final String UPDATE_USER_QUERY =
+            "UPDATE USERS\n" +
+            "    SET \n" +
+            "        email = ?,\n" +
+            "        login = ?,\n" +
+            "        name = ?,\n" +
+            "        birthday = ?\n" +
+            "    WHERE \n" +
+            "        USER_ID = ?;";
 
     @Override
     public List<User> getCommonFriends(User mainUser, User otherUser) {
@@ -49,9 +75,9 @@ public class UserDbStorage implements UserStorage {
                 "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id)";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
                 .query(
-                        sqlQuery,
-                        Map.of("first_user_id", mainUser.getId(), "second_user_id", otherUser.getId()),
-                        (resultSet, rowNum) -> (createNewUser(resultSet)));
+                    sqlQuery,
+                    Map.of("first_user_id", mainUser.getId(), "second_user_id", otherUser.getId()),
+                    this::createNewUser);
     }
 
     @Override
@@ -101,46 +127,32 @@ public class UserDbStorage implements UserStorage {
         }
         DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
         jdbcTemplate.update(
-                "UPDATE USERS\n" +
-                        "    SET \n" +
-                        "        email = ?,\n" +
-                        "        login = ?,\n" +
-                        "        name = ?,\n" +
-                        "        birthday = ?\n" +
-                        "    WHERE \n" +
-                        "        USER_ID = ?;",
+                UPDATE_USER_QUERY,
                 user.getEmail(), user.getLogin(), user.getName(), user.getBirthday().format(formatter), user.getId());
         return getUser(user.getId());
     }
 
     @Override
     public List<User> getUsers() {
-        String sqlQuery =
-                "SELECT\n" +
-                        "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
-                        "FROM \n" +
-                        "     USERS;";
-        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewUser(rs)));
+        return jdbcTemplate.query(GET_ALL_USERS_QUERY, this::createNewUser);
+    }
+
+    @Override
+    public List<User> getUsers(List<Integer> ids) {
+        return new NamedParameterJdbcTemplate(jdbcTemplate)
+                .query(GET_LIST_OF_USERS_QUERY, Map.of("user_ids", ids), this::createNewUser);
     }
 
     @Override
     public User getUser(int id) {
-        String sqlQuery =
-                "SELECT\n" +
-                        "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
-                        "FROM\n" +
-                        "     USERS\n" +
-                        "WHERE\n" +
-                        "    USER_ID = :user_id\n" +
-                        "LIMIT 1;";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
-                .query(sqlQuery, Map.of("user_id", id), (rs, rowNum) -> (createNewUser(rs)))
+                .query(GET_USER_BY_ID_QUERY, Map.of("user_id", id), this::createNewUser)
                 .stream()
                 .findAny()
                 .orElse(null);
     }
 
-    private User createNewUser(ResultSet resultSet) {
+    private User createNewUser(ResultSet resultSet, int rowNum) {
         User user = new User();
 
         try {
