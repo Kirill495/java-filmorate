@@ -22,7 +22,6 @@ public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-
     private final FeedService feedService;
 
     @Autowired
