@@ -54,8 +54,7 @@ class UserControllerTest {
         UserService service = new UserService(storage, new FeedService(new FeedDaoImpl(new JdbcTemplate())));
         FilmStorage filmStorage = new InMemoryFilmStorage();
         RecommendationsService recommendationsService = new RecommendationsService(filmStorage);
-        FeedService feedService = new FeedService(new FeedDaoImpl(new JdbcTemplate()));
-        controller = new UserController(service, recommendationsService, feedService);
+        controller = new UserController(service, recommendationsService);
 
         user = new User();
         user.setName("Username");

@@ -9,8 +9,6 @@ import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -68,28 +66,17 @@ public class UserService {
         if (relations.stream().anyMatch(counterRequestIsAlreadySent)) {
             // запрос уже был отправлен с противоположной стороны
             storage.updateUserRelations(user, friend, true);
-        }
-        if (relations.stream().noneMatch(requestIsAlreadySent)) {
+        } else if (relations.stream().noneMatch(requestIsAlreadySent)) {
             storage.updateUserRelations(user, friend, false);
+            feedService.postEvent(userId, friend, Operation.ADD);
         }
-        feedService.postEvent(Feed.builder().setUserId(userId)
-                .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                .setEventType(EventType.FRIEND.toString())
-                .setOperation(Operation.ADD.toString())
-                .setEntityId(friendId)
-                .build());
     }
 
     public void deleteFriend(int userId, int friendId) {
         User user = getUserInner(userId);
         User friend = getUserInner(friendId);
         storage.removeUserRelations(user, friend);
-        feedService.postEvent(Feed.builder().setUserId(userId)
-                .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                .setEventType(EventType.FRIEND.toString())
-                .setOperation(Operation.REMOVE.toString())
-                .setEntityId(friendId)
-                .build());
+        feedService.postEvent(userId, friend, Operation.REMOVE);
     }
 
     public List<User> getFriends(int id) {
@@ -104,7 +91,6 @@ public class UserService {
     public List<User> getCommonFriends(int id, int otherId) {
         User mainUser = getUserInner(id);
         User otherUser = getUserInner(otherId);
-
         return storage.getCommonFriends(mainUser, otherUser);
     }
 

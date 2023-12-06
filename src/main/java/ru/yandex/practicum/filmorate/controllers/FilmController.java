@@ -66,7 +66,7 @@ public class FilmController {
     public List<Film> getTopPopular(@RequestParam(defaultValue = "10") Integer count,
                                     @RequestParam(required = false) Integer genreId,
                                     @RequestParam(required = false) Integer year) {
-        return service.getTheMostGenreYearPopularFilms(count, genreId, year);
+        return service.getMostPopularFilms(count, genreId, year);
     }
 
     @DeleteMapping("/{filmId}")

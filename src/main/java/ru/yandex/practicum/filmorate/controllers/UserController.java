@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -27,15 +26,12 @@ import java.util.List;
 public class UserController {
 
     private final UserService service;
-
     private final RecommendationsService recommendationsService;
-    private final FeedService feedService;
 
     @Autowired
-    public UserController(UserService service, RecommendationsService recommendationsService, FeedService feedService) {
+    public UserController(UserService service, RecommendationsService recommendationsService) {
         this.service = service;
         this.recommendationsService = recommendationsService;
-        this.feedService = feedService;
     }
 
     @PostMapping
@@ -48,6 +44,12 @@ public class UserController {
     public User updateUser(@Valid @RequestBody User user) {
         log.debug("update user {}", user);
         return service.updateUser(user);
+    }
+
+    @DeleteMapping("/{userId}")
+    public boolean deleteUser(@PathVariable int userId) {
+        log.info("Delete user{}", userId);
+        return service.deleteUser(userId);
     }
 
     @GetMapping
@@ -91,10 +93,4 @@ public class UserController {
         return service.getFeed(userId);
     }
 
-
-    @DeleteMapping("/{userId}")
-    public boolean deleteUser(@PathVariable int userId) {
-        log.info("Delete user{}", userId);
-        return service.deleteUser(userId);
-    }
 }

@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateFilmFromDatabaseResultSetException;
-import ru.yandex.practicum.filmorate.exceptions.db.RequestSqlException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -287,14 +286,14 @@ public class FilmDbStorage implements FilmStorage {
         try {
             String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
                     "EXTRACT(YEAR FROM m.release_date), m.duration, " +
-                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
                     "FROM movies AS m " +
                     "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
                     "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
                     "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
                     "WHERE EXTRACT(YEAR FROM m.release_date)=? AND g.genre_id=? " +
                     "GROUP BY m.movie_id " +
-                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "ORDER BY COUNT(l.movie_id) DESC, m.movie_id " +
                     "LIMIT ?;";
 
             List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, genreId, limit);
@@ -303,21 +302,21 @@ public class FilmDbStorage implements FilmStorage {
             fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
-            throw new RequestSqlException(e);
+            return new ArrayList<>();
         }
     }
 
     public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
         try {
             String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, m.duration, " +
-                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
                     "FROM movies AS m " +
                     "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
                     "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
                     "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
                     "WHERE g.genre_id=? " +
                     "GROUP BY m.movie_id " +
-                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "ORDER BY COUNT(l.movie_id) DESC, m.movie_id " +
                     "LIMIT ?;";
             List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), genreId, limit);
             fillInGenres(films);
@@ -325,30 +324,31 @@ public class FilmDbStorage implements FilmStorage {
             fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
-            throw new RequestSqlException(e);
+            return new ArrayList<>();
         }
     }
 
     public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
+
+        String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
+                "EXTRACT(YEAR FROM m.release_date), m.duration, " +
+                "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
+                "FROM movies AS m " +
+                "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                "WHERE EXTRACT(YEAR FROM m.release_date)=? " +
+                "GROUP BY m.movie_id " +
+                "ORDER BY COUNT(l.movie_id) DESC, m.movie_id " +
+                "LIMIT ?;";
         try {
-            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
-                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
-                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
-                    "FROM movies AS m " +
-                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
-                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
-                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
-                    "WHERE EXTRACT(YEAR FROM m.release_date)=? " +
-                    "GROUP BY m.movie_id " +
-                    "ORDER BY COUNT(l.movie_id) DESC " +
-                    "LIMIT ?;";
             List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, limit);
             fillInGenres(films);
             fillInLikes(films);
             fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
-            throw new RequestSqlException(e);
+            return new ArrayList<>();
         }
     }
 
