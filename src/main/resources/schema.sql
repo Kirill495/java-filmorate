@@ -2,14 +2,17 @@ DROP TABLE IF EXISTS reviews_estimations;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_movie_unique;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_not_null;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_movie_not_null;
-DROP TABLE IF EXISTS reviews;
+DROP TABLE reviews IF EXISTS CASCADE;
 drop table mpa_rating IF EXISTS CASCADE;
 drop table genres IF EXISTS CASCADE;
+drop table directors IF EXISTS CASCADE;
 drop table movies IF EXISTS CASCADE;
+drop table movies_directors IF EXISTS CASCADE;
 drop table movies_genres IF EXISTS CASCADE;
 drop table users IF EXISTS CASCADE;
 drop table user_relations IF EXISTS CASCADE;
 drop table movies_likes IF EXISTS CASCADE;
+drop table feed IF EXISTS CASCADE;
 
 CREATE TABLE IF NOT EXISTS mpa_rating (
     rating_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -69,13 +72,13 @@ CREATE TABLE IF NOT EXISTS movies_likes (
     PRIMARY KEY (movie_id, user_id)
 );
 
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE IF NOT EXISTS feed (
 	event_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	event_time timestamp,
-	user_id INT REFERENCES users(user_id),
+	event_time TIMESTAMP WITH TIME ZONE DEFAULT CURDATE(),
+	user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
 	event_type VARCHAR NOT NULL,
 	operation VARCHAR NOT NULL,
-	entityId INT NOT NULL
+	entity_id INT NOT NULL
 );
 
 

@@ -9,10 +9,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.yandex.practicum.filmorate.dao.impl.FeedDaoImpl;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -39,6 +41,7 @@ public class ReviewControllerTest {
 
         FilmStorage filmStorage = new FilmDbStorage(jdbcTemplate);
         UserStorage userStorage = new UserDbStorage(jdbcTemplate);
+        FeedService feedService = new FeedService(new FeedDaoImpl(new JdbcTemplate()));
         Film film1 = new Film();
         film1.setName("Film_1_");
         film1.setDescription("About film 1");
@@ -74,7 +77,7 @@ public class ReviewControllerTest {
         User rUser2 = userStorage.addUser(user2);
 
         ReviewStorage reviewStorage = new ReviewDbStorage(jdbcTemplate);
-        ReviewService reviewService = new ReviewService(reviewStorage, filmStorage, userStorage);
+        ReviewService reviewService = new ReviewService(reviewStorage, feedService, filmStorage, userStorage);
 
         Review review1 = new Review();
         review1.setContent("Review 1 to film 1");

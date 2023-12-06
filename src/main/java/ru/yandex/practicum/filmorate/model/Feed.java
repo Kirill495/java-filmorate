@@ -1,17 +1,16 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
-import java.time.ZonedDateTime;
 
 @Data
-@AllArgsConstructor
-public class Event {
+@Builder(setterPrefix = "set")
+public class Feed {
     @NotNull
     Integer eventId;
-    ZonedDateTime eventTime;
+    Long timestamp;
     @NotNull
     Integer userId;
     @NotNull

@@ -20,11 +20,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.FeedDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.EventService;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -51,10 +51,11 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         UserStorage storage = new InMemoryUserStorage();
-        UserService service = new UserService(storage, new EventService(new EventDaoImpl(new JdbcTemplate())));
+        UserService service = new UserService(storage, new FeedService(new FeedDaoImpl(new JdbcTemplate())));
         FilmStorage filmStorage = new InMemoryFilmStorage();
         RecommendationsService recommendationsService = new RecommendationsService(filmStorage);
-        controller = new UserController(service, recommendationsService);
+        FeedService feedService = new FeedService(new FeedDaoImpl(new JdbcTemplate()));
+        controller = new UserController(service, recommendationsService, feedService);
 
         user = new User();
         user.setName("Username");
