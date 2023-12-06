@@ -4,7 +4,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.DirectorDao;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateDirectorFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.director.DirectorNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -13,11 +14,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 
-@Component
-public class DirectorDaoImpl implements ru.yandex.practicum.filmorate.dao.DirectorDao {
+@Repository
+public class DirectorDaoImpl implements DirectorDao {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String GET_DIRECTORS_QUERY = "SELECT director_id, name FROM directors";
+    private static final String GET_DIRECTOR_BY_ID_QUERY =
+            "SELECT director_id, name FROM directors where director_id = ?";
+    private static final String ADD_NEW_DIRECTOR_QUERY = "INSERT INTO directors (name) VALUES (?)";
+    private static final String UPDATE_DIRECTOR_QUERY = "UPDATE directors SET name = ? WHERE director_id = ?";
+    private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM directors WHERE director_id = ?";
 
     public DirectorDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -25,17 +33,13 @@ public class DirectorDaoImpl implements ru.yandex.practicum.filmorate.dao.Direct
 
     @Override
     public List<Director> getDirectors() {
-        String sqlQuery = "SELECT director_id, name FROM directors";
-
-        return jdbcTemplate.query(sqlQuery, this::mapRowToDirector);
+        return jdbcTemplate.query(GET_DIRECTORS_QUERY, this::mapRowToDirector);
     }
 
     @Override
     public Director getDirectorById(int id) {
-        String sqlQuery = "SELECT director_id, name FROM directors where director_id = ?";
-
         try {
-            return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToDirector, id);
+            return jdbcTemplate.queryForObject(GET_DIRECTOR_BY_ID_QUERY, this::mapRowToDirector, id);
         } catch (EmptyResultDataAccessException e) {
             throw new DirectorNotFoundException(id);
         }
@@ -43,33 +47,27 @@ public class DirectorDaoImpl implements ru.yandex.practicum.filmorate.dao.Direct
 
     @Override
     public Director postDirector(Director director) {
-        String sqlInsert = "INSERT INTO directors (name) VALUES (?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlInsert, new String[]{"director_id"});
+            PreparedStatement stmt = connection.prepareStatement(ADD_NEW_DIRECTOR_QUERY, new String[]{"director_id"});
             stmt.setString(1, director.getName());
             return stmt;
         }, keyHolder);
-        director.setId(keyHolder.getKey().intValue());
+        director.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
         return director;
     }
 
     @Override
     public Director putDirector(Director director) {
         getDirectorById(director.getId());
-        String sqlUpdate = "UPDATE directors SET name = ? WHERE director_id = ?";
-
-        jdbcTemplate.update(sqlUpdate, director.getName(), director.getId());
+        jdbcTemplate.update(UPDATE_DIRECTOR_QUERY, director.getName(), director.getId());
         return director;
     }
 
     @Override
     public void deleteDirector(int id) {
         getDirectorById(id);
-        String sqlUpdate = "delete from directors WHERE director_id = ?";
-
-        jdbcTemplate.update(sqlUpdate, id);
+        jdbcTemplate.update(DELETE_DIRECTOR_QUERY, id);
     }
 
     private Director mapRowToDirector(ResultSet resultSet, int rowNum) {

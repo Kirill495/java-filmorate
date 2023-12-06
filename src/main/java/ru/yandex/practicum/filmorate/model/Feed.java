@@ -6,7 +6,7 @@ import lombok.Data;
 import javax.validation.constraints.NotNull;
 
 @Data
-@Builder(setterPrefix = "set")
+@Builder(setterPrefix = "with")
 public class Feed {
     @NotNull
     Integer eventId;

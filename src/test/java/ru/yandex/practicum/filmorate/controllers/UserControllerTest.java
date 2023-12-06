@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,10 +14,14 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.yandex.practicum.filmorate.dao.impl.FeedDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
@@ -106,7 +108,7 @@ class UserControllerTest {
     @Test
     void addUserWithEmptyLoginShouldThrowException() throws Exception {
         user.setLogin("");
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -119,7 +121,7 @@ class UserControllerTest {
     @Test
     void addUserWithNullLoginShouldThrowException() throws Exception {
         user.setLogin(null);
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -132,7 +134,7 @@ class UserControllerTest {
     @Test
     void addUserWithLoginWithWhitespacesShouldThrowException() throws Exception {
         user.setLogin("l o g i n");
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -145,7 +147,7 @@ class UserControllerTest {
     @Test
     void addUserWithEmailWithout_a_ShouldThrowException() throws Exception {
         user.setEmail("email");
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -158,7 +160,7 @@ class UserControllerTest {
     @Test
     void addUserWithBlankEmailShouldThrowException() throws Exception {
         user.setEmail("  ");
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -171,7 +173,7 @@ class UserControllerTest {
     @Test
     void addUserWithNullEmailShouldThrowException() throws Exception {
         user.setEmail(null);
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -184,7 +186,7 @@ class UserControllerTest {
     @Test
     void addUserWithIncorrectBirthdayShouldThrowException() throws Exception {
         user.setBirthday(LocalDate.now().plusDays(1));
-        mvc.perform(post("/users")
+        mvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())

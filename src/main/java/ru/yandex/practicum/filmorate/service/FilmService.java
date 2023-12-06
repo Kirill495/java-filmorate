@@ -5,8 +5,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.exceptions.film.IncorrectSearchFilmParameterException;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public class FilmService {
     private final UserService userService;
     private final DirectorService directorService;
     private final FeedService feedService;
+    private static final String SEARCH_PARAM_TITLE = "TITLE";
+    private static final String SEARCH_PARAM_DIRECTOR = "DIRECTOR";
 
     @Autowired
     public FilmService(@Qualifier("FilmDbStorage") FilmStorage storage, UserService userService, DirectorService directorService, FeedService feedService) {
@@ -76,8 +79,9 @@ public class FilmService {
 
     public List<Film> searchFilms(String query, String filter) {
         Set<String> filterParams = Set.of(filter.toUpperCase().split(","));
-        if (!filterParams.contains("TITLE") && !filterParams.contains("DIRECTOR")) {
-            throw new IncorrectSearchFilmParameterException();
+        if (!filterParams.contains(SEARCH_PARAM_TITLE) && !filterParams.contains(SEARCH_PARAM_DIRECTOR)) {
+            throw new IncorrectSearchFilmParameterException(
+                "Параметр запроса \"by\" должен содержать значения: DIRECTOR или TITLE");
         }
         return storage.getFilmsBySearchParameters(query, filterParams);
     }
