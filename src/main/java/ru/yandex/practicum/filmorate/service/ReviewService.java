@@ -40,7 +40,7 @@ public class ReviewService {
         checkReviewFieldsConsistency(review);
         Review curReview = reviewStorage.addReview(review);
 
-        feedService.postEvent(Feed.builder().setUserId(review.getUserId())
+        feedService.postEvent(Feed.builder().setUserId(curReview.getUserId())
                 .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
                 .setEventType(EventType.REVIEW.toString())
                 .setOperation(Operation.ADD.toString())
@@ -53,7 +53,7 @@ public class ReviewService {
         checkReviewFieldsConsistency(review);
         Review curReview = reviewStorage.updateReview(review);
 
-        feedService.postEvent(Feed.builder().setUserId(review.getUserId())
+        feedService.postEvent(Feed.builder().setUserId(curReview.getUserId())
                 .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
                 .setEventType(EventType.REVIEW.toString())
                 .setOperation(Operation.UPDATE.toString())

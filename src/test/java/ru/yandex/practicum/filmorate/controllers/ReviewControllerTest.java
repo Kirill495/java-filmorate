@@ -41,7 +41,7 @@ public class ReviewControllerTest {
 
         FilmStorage filmStorage = new FilmDbStorage(jdbcTemplate);
         UserStorage userStorage = new UserDbStorage(jdbcTemplate);
-        FeedService feedService = new FeedService(new FeedDaoImpl(new JdbcTemplate()));
+        FeedService feedService = new FeedService(new FeedDaoImpl(jdbcTemplate));
         Film film1 = new Film();
         film1.setName("Film_1_");
         film1.setDescription("About film 1");
