@@ -5,16 +5,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -39,26 +35,14 @@ public class ReviewService {
     public Review addReview(Review review) {
         checkReviewFieldsConsistency(review);
         Review curReview = reviewStorage.addReview(review);
-
-        feedService.postEvent(Feed.builder().setUserId(curReview.getUserId())
-                .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                .setEventType(EventType.REVIEW.toString())
-                .setOperation(Operation.ADD.toString())
-                .setEntityId(curReview.getReviewId())
-                .build());
+        feedService.postEvent(review.getUserId(), curReview, Operation.ADD);
         return curReview;
     }
 
     public Review updateReview(Review review) {
         checkReviewFieldsConsistency(review);
         Review curReview = reviewStorage.updateReview(review);
-
-        feedService.postEvent(Feed.builder().setUserId(curReview.getUserId())
-                .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                .setEventType(EventType.REVIEW.toString())
-                .setOperation(Operation.UPDATE.toString())
-                .setEntityId(review.getReviewId())
-                .build());
+        feedService.postEvent(curReview.getUserId(), curReview, Operation.UPDATE);
         return curReview;
     }
 
@@ -75,18 +59,11 @@ public class ReviewService {
 
     public void removeReview(int reviewId) {
         Review review = reviewStorage.getReview(reviewId);
-
         reviewStorage.removeReview(reviewId);
-        feedService.postEvent(Feed.builder().setUserId(review.getUserId())
-                .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                .setEventType(EventType.REVIEW.toString())
-                .setOperation(Operation.REMOVE.toString())
-                .setEntityId(review.getReviewId())
-                .build());
+        feedService.postEvent(review.getUserId(), review, Operation.REMOVE);
     }
 
     public void addMarkToReview(int reviewId, int userId, int mark) {
-        reviewStorage.getReview(reviewId);
         if (userStorage.getUser(userId) == null) {
             throw new UserNotFoundException(userId);
         }
@@ -94,6 +71,7 @@ public class ReviewService {
     }
 
     public void removeMarkOfReview(int reviewId, int userId, int mark) {
+        reviewStorage.getReview(reviewId);
         reviewStorage.removeMarkOfReview(reviewId, userId, mark);
     }
 
