@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -27,11 +29,13 @@ public class UserController {
     private final UserService service;
 
     private final RecommendationsService recommendationsService;
+    private final FeedService feedService;
 
     @Autowired
-    public UserController(UserService service, RecommendationsService recommendationsService) {
+    public UserController(UserService service, RecommendationsService recommendationsService, FeedService feedService) {
         this.service = service;
         this.recommendationsService = recommendationsService;
+        this.feedService = feedService;
     }
 
     @PostMapping
@@ -81,6 +85,12 @@ public class UserController {
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         return service.getCommonFriends(id, otherId);
     }
+
+    @GetMapping("/{id}/feed")
+    public List<Feed> getFeed(@PathVariable("id") int userId) {
+        return service.getFeed(userId);
+    }
+
 
     @DeleteMapping("/{userId}")
     public boolean deleteUser(@PathVariable int userId) {
