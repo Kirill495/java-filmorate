@@ -5,15 +5,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.model.EventType;
-import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.exceptions.film.IncorrectSearchFilmParameterException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -57,15 +52,10 @@ public class FilmService {
         Film film = getFilmInner(filmId);
         userService.getUser(userId);
         Set<Integer> likes = film.getLikes();
+        feedService.postEvent(userId, film, Operation.ADD);
         if (!likes.contains(userId)) {
             film.getLikes().add(userId);
             storage.updateFilm(film);
-            feedService.postEvent(Feed.builder().setUserId(userId)
-                    .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                    .setEventType(EventType.LIKE.toString())
-                    .setOperation(Operation.ADD.toString())
-                    .setEntityId(filmId)
-                    .build());
             return true;
         }
         return false;
@@ -75,22 +65,13 @@ public class FilmService {
         Film film = getFilmInner(filmId);
         userService.getUser(userId);
         Set<Integer> likes = film.getLikes();
+        feedService.postEvent(userId, film, Operation.REMOVE);
         if (likes.contains(userId)) {
             likes.remove(userId);
             storage.updateFilm(film);
-            feedService.postEvent(Feed.builder().setUserId(userId)
-                    .setTimestamp(Timestamp.valueOf(LocalDateTime.now()).getTime())
-                    .setEventType(EventType.LIKE.toString())
-                    .setOperation(Operation.REMOVE.toString())
-                    .setEntityId(filmId)
-                    .build());
             return true;
         }
         return false;
-    }
-
-    public List<Film> getTheMostPopularFilms(int count) {
-        return storage.getMostPopularFilms(count);
     }
 
     public List<Film> searchFilms(String query, String filter) {
@@ -114,7 +95,7 @@ public class FilmService {
         return storage.deleteFilm(filmId);
     }
 
-    public List<Film> getTheMostGenreYearPopularFilms(Integer limit, Integer genreId, Integer year) {
+    public List<Film> getMostPopularFilms(Integer limit, Integer genreId, Integer year) {
         return storage.getMostPopularFilmsFilterAll(limit, genreId, year);
     }
 

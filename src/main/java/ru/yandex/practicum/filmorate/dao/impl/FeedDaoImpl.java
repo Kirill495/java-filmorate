@@ -29,15 +29,15 @@ public class FeedDaoImpl implements FeedDao {
     public Feed postEvent(Feed feed) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(INSERT_NEW_FEED_QUERY, new String[]{"event_id"});
-            stmt.setTimestamp(1, new Timestamp(feed.getTimestamp()));
-            stmt.setInt(2, feed.getUserId());
-            stmt.setString(3, feed.getEventType());
-            stmt.setString(4, feed.getOperation());
-            stmt.setInt(5, feed.getEntityId());
+            PreparedStatement stmt = connection.prepareStatement(INSERT_NEW_FEED_QUERY, new String[]{"event_id", "event_time"});
+            stmt.setInt(1, feed.getUserId());
+            stmt.setString(2, feed.getEventType());
+            stmt.setString(3, feed.getOperation());
+            stmt.setInt(4, feed.getEntityId());
             return stmt;
         }, keyHolder);
-        feed.setEventId(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        feed.setEventId(Integer.parseInt(Objects.requireNonNull(keyHolder.getKeys()).get("event_id").toString()));
+        feed.setTimestamp(((Timestamp) Objects.requireNonNull(keyHolder.getKeys()).get("event_time")).getTime());
         return feed;
     }
 
@@ -47,11 +47,10 @@ public class FeedDaoImpl implements FeedDao {
                 "FROM feed AS f " +
                 "WHERE f.user_id = ? " +
                 "ORDER BY f.event_time";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeEvent(rs), userId);
+        return jdbcTemplate.query(sql, this::makeEvent, userId);
     }
 
-    private Feed makeEvent(ResultSet rs) throws SQLException {
+    private Feed makeEvent(ResultSet rs, int rowNum) throws SQLException {
         int eventId = rs.getInt("event_id");
         long eventTime = rs.getTimestamp("event_time").getTime();
         int userId = rs.getInt("user_id");
