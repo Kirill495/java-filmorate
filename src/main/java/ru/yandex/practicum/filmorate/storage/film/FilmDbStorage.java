@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -19,9 +18,7 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -100,7 +97,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration(),
                 film.getMpa().getId(),
                 film.getId());
-        updateFilmGenres(film);
+        updateFilmGenres(film, film.getId());
         updateLikes(film.getLikes(), film.getId());
         updateFilmDirectors(film, film.getId());
         return getFilm(film.getId());
@@ -230,7 +227,7 @@ public class FilmDbStorage implements FilmStorage {
         return films;
     }
 
-    public List<Film> getTheMostPopularFilms(int count) {
+    public List<Film> getMostPopularFilms(int count) {
         List<Film> films = getFilmsWithRating(count);
         if (films.size() < count) {
             films.addAll(getFilmsWithoutRating(count - films.size()));
@@ -263,7 +260,6 @@ public class FilmDbStorage implements FilmStorage {
                 "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
                 "WHERE\n" +
                 "user_likes.USER_ID = ?";
-
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
     }
 
@@ -277,7 +273,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
         if (year == null && genreId == null) {
-            return getTheMostPopularFilms(limit);
+            return getMostPopularFilms(limit);
         } else if (year != null && genreId == null) {
             return getMostPopularFilmsFilterByYear(limit, year);
         } else if (year == null && genreId != null) {
@@ -356,34 +352,24 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private void updateFilmGenres(Film film) {
-        updateFilmGenres(film, film.getId());
-    }
-
     private void updateFilmGenres(Film film, int filmId) {
         jdbcTemplate.update("DELETE FROM MOVIES_GENRES WHERE movie_id = ?", filmId);
         String sqlQuery = "INSERT INTO MOVIES_GENRES VALUES (?, ?)";
         film.getGenres()
-                .forEach(genre -> {
-                    jdbcTemplate.update(sqlQuery, filmId, genre.getId());
-                });
+                .forEach(genre -> jdbcTemplate.update(sqlQuery, filmId, genre.getId()));
     }
 
     private void updateLikes(Set<Integer> likes, int filmId) {
         jdbcTemplate.update("DELETE FROM MOVIES_LIKES WHERE movie_id = ?", filmId);
         String sqlQuery = "INSERT INTO MOVIES_LIKES VALUES (?, ?)";
-        likes.forEach(userId -> {
-            jdbcTemplate.update(sqlQuery, filmId, userId);
-        });
+        likes.forEach(userId -> jdbcTemplate.update(sqlQuery, filmId, userId));
     }
 
     private void updateFilmDirectors(Film film, int filmId) {
         jdbcTemplate.update("DELETE FROM MOVIES_DIRECTORS WHERE movie_id = ?", filmId);
         String sqlQuery = "INSERT INTO MOVIES_DIRECTORS VALUES (?, ?)";
         film.getDirectors()
-                .forEach(director -> {
-                    jdbcTemplate.update(sqlQuery, filmId, director.getId());
-                });
+                .forEach(director -> jdbcTemplate.update(sqlQuery, filmId, director.getId()));
     }
 
     private Film createNewFilm(ResultSet resultSet) {
@@ -410,18 +396,6 @@ public class FilmDbStorage implements FilmStorage {
         }
         film.setMpa(ratingItem);
         return film;
-    }
-
-    @Override
-    public List<Film> getTheMostPopularFilms(int count) {
-        List<Film> films = getFilmsWithRating(count);
-        if (films.size() < count) {
-            films.addAll(getFilmsWithoutRating(count - films.size()));
-        }
-        fillInGenres(films);
-        fillInLikes(films);
-        fillInDirectors(films);
-        return films;
     }
 
     @Override
@@ -554,9 +528,7 @@ public class FilmDbStorage implements FilmStorage {
             films.stream()
                     .filter(film -> (film.getId() == movieId))
                     .findFirst()
-                    .ifPresent(film -> {
-                        film.getLikes().add(rowSet.getInt("user_id"));
-                    });
+                    .ifPresent(film -> film.getLikes().add(rowSet.getInt("user_id")));
         }
     }
 

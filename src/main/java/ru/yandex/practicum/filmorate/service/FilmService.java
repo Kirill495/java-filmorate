@@ -90,7 +90,7 @@ public class FilmService {
     }
 
     public List<Film> getTheMostPopularFilms(int count) {
-        return storage.getTheMostPopularFilms(count);
+        return storage.getMostPopularFilms(count);
     }
 
     public List<Film> searchFilms(String query, String filter) {

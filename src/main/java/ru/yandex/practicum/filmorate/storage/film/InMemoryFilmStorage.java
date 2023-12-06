@@ -6,10 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -43,6 +40,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> getFilms() {
         log.trace("get film data");
         return new ArrayList<>(films.values());
+    }
+
+    @Override
+    public List<Film> getMostPopularFilms(int count) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getFilmsBySearchParameters(String query, Set<String> queryParameters) {
+        return null;
     }
 
     @Override
