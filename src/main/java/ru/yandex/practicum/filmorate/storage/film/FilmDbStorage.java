@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,6 +10,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateFilmFromDatabaseResultSetException;
+import ru.yandex.practicum.filmorate.exceptions.db.RequestSqlException;
 import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,7 +19,9 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -126,6 +130,50 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getRecommendations(int userId) {
+        String sqlQuery =
+                "--Получаем итоговый список фильмов из той же movies_likes через лайки:-------------------------\n" +
+                        "SELECT DISTINCT\n" +
+                        "    movies.movie_id as id,\n" +
+                        "    movies.title AS movie_title,\n" +
+                        "    movies.description AS movie_description,\n" +
+                        "    movies.release_date,\n" +
+                        "    movies.duration,\n" +
+                        "    CASE WHEN movies.rating IS NULL THEN 0 ELSE movies.rating END AS rating_id,\n" +
+                        "    MPA_rating.title AS rating_title,\n" +
+                        "    MPA_rating.DESCRIPTION AS rating_description\n" +
+                        "FROM movies_likes ul\n" +
+                        "LEFT JOIN movies_likes ul2 ON ul.movie_id = ul2.movie_id AND ul2.user_id = :user_id\n" +
+                        "INNER JOIN movies ON ul.movie_id = movies.movie_id\n" +
+                        "LEFT JOIN MPA_rating ON movies.rating = MPA_rating.rating_id\n" +
+                        "---------------------------------------------------------------------------------------------\n" +
+                        "WHERE ul2.user_id IS NULL AND ul.user_id IN \n" +
+                        "	--Найдем пользователя с которым больше всего лайков--------------------------------------\n" +
+                        "	(SELECT \n" +
+                        "		ul2.user_id\n" +
+                        "	FROM movies_likes ul1\n" +
+                        "	INNER JOIN movies_likes ul2\n" +
+                        "		ON ul1.movie_id = ul2.movie_id\n" +
+                        "			AND ul1.user_id != ul2.user_id --не учитываем этот же фильм\n" +
+                        "	WHERE ul1.user_id = :user_id\n" +
+                        "	GROUP BY  ul2.user_id\n" +
+                        "	HAVING ul2.user_id IN\n" +
+                        "				--Найти всех пользователей имеющих лайки, которых нет у данного пользователя:\n" +
+                        "				(SELECT DISTINCT ul.USER_ID\n" +
+                        "				FROM movies_likes AS ul			\n" +
+                        "				LEFT JOIN movies_likes ul2 ON ul.movie_id = ul2.movie_id AND ul2.user_id = :user_id\n" +
+                        "				WHERE ul2.user_id IS NULL\n" +
+                        "				)\n" +
+                        "	ORDER BY COUNT(*) DESC LIMIT 1 --Сортируем по количеству лайков и отбираем первый сверху \n" +
+                        "	)"
+                ;
+        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(sqlQuery, Map.of("user_id", userId), (rs, rowNum) -> createNewFilm(rs));
+        fillInGenres(films);
+        fillInLikes(films);
+        return films;
+    }
+
+    @Override
     public Film getFilm(int id) {
         String sqlQuery =
                 "SELECT\n" +
@@ -180,6 +228,132 @@ public class FilmDbStorage implements FilmStorage {
         fillInLikes(films);
         fillInDirectors(films);
         return films;
+    }
+
+    public List<Film> getTheMostPopularFilms(int count) {
+        List<Film> films = getFilmsWithRating(count);
+        if (films.size() < count) {
+            films.addAll(getFilmsWithoutRating(count - films.size()));
+        }
+        fillInGenres(films);
+        fillInLikes(films);
+        fillInDirectors(films);
+        return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String sqlQuery = "SELECT\n" +
+                "user_likes.MOVIE_ID AS id,\n" +
+                "MOVIES.TITLE AS movie_title,\n" +
+                "MOVIES.DESCRIPTION AS movie_description,\n" +
+                "MOVIES.RELEASE_DATE AS release_date,\n" +
+                "MOVIES.DURATION AS duration,\n" +
+                "MPA_RATING.rating_id as rating_id,\n" +
+                "MPA_RATING.description as rating_description,\n" +
+                "MPA_RATING.title as rating_title\n" +
+                "FROM\n" +
+                "MOVIES_LIKES as user_likes\n" +
+                "INNER JOIN MOVIES_LIKES AS friend_likes\n" +
+                "ON user_likes.MOVIE_ID = friend_likes.MOVIE_ID\n" +
+                "AND friend_likes.USER_ID = ?\n" +
+                "INNER JOIN MOVIES\n" +
+                "INNER JOIN MPA_RATING\n" +
+                "ON MOVIES.rating = MPA_RATING.rating_id\n" +
+                "ON user_likes.MOVIE_ID = MOVIES.MOVIE_ID\n" +
+                "WHERE\n" +
+                "user_likes.USER_ID = ?";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
+    }
+
+
+    @Override
+    public boolean deleteFilm(int filmId) {
+        String sqlQuery = "DELETE FROM movies WHERE movie_id=?;";
+        return jdbcTemplate.update(sqlQuery, filmId) > 0;
+    }
+
+    @Override
+    public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
+        if (year == null && genreId == null) {
+            return getTheMostPopularFilms(limit);
+        } else if (year != null && genreId == null) {
+            return getMostPopularFilmsFilterByYear(limit, year);
+        } else if (year == null && genreId != null) {
+            return getMostPopularFilmsFilterByGenre(limit, genreId);
+        } else {
+            return requestPopularFilmsFilterByYearAndGenre(limit, genreId, year);
+        }
+    }
+
+    public List<Film> requestPopularFilmsFilterByYearAndGenre(int limit, int genreId, int year) {
+        try {
+            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
+                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
+                    "FROM movies AS m " +
+                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                    "WHERE EXTRACT(YEAR FROM m.release_date)=? AND g.genre_id=? " +
+                    "GROUP BY m.movie_id " +
+                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "LIMIT ?;";
+
+            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, genreId, limit);
+            fillInGenres(films);
+            fillInLikes(films);
+            fillInDirectors(films);
+            return films;
+        } catch (DataAccessException e) {
+            throw new RequestSqlException(e);
+        }
+    }
+
+    public List<Film> getMostPopularFilmsFilterByGenre(int limit, int genreId) {
+        try {
+            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, m.duration, " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date, g.genre_id " +
+                    "FROM movies AS m " +
+                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                    "WHERE g.genre_id=? " +
+                    "GROUP BY m.movie_id " +
+                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "LIMIT ?;";
+            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), genreId, limit);
+            fillInGenres(films);
+            fillInLikes(films);
+            fillInDirectors(films);
+            return films;
+        } catch (DataAccessException e) {
+            throw new RequestSqlException(e);
+        }
+    }
+
+    public List<Film> getMostPopularFilmsFilterByYear(int limit, int year) {
+        try {
+            String sqlQuery = "SELECT m.movie_id AS id, m.title AS movie_title, m.description AS movie_description, " +
+                    "EXTRACT(YEAR FROM m.release_date), m.duration, " +
+                    "r.rating_id, r.title AS rating_title, r.description AS rating_description, COUNT(l.movie_id), m.release_date " +
+                    "FROM movies AS m " +
+                    "LEFT JOIN movies_likes AS l ON m.movie_id = l.movie_id " +
+                    "INNER JOIN mpa_rating AS r ON m.rating = r.rating_id " +
+                    "INNER JOIN movies_genres AS g ON m.movie_id=g.movie_id " +
+                    "WHERE EXTRACT(YEAR FROM m.release_date)=? " +
+                    "GROUP BY m.movie_id " +
+                    "ORDER BY COUNT(l.movie_id) DESC " +
+                    "LIMIT ?;";
+            List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), year, limit);
+            fillInGenres(films);
+            fillInLikes(films);
+            fillInDirectors(films);
+            return films;
+        } catch (DataAccessException e) {
+            throw new RequestSqlException(e);
+        }
     }
 
     private void updateFilmGenres(Film film) {
@@ -322,7 +496,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private List<Film> getFilmsWithoutRating(int count) {
-
         String sqlQuery = String.format("SELECT\n" +
                 "    movies.movie_id as id,\n" +
                 "    movies.title AS movie_title,\n" +
@@ -373,7 +546,7 @@ public class FilmDbStorage implements FilmStorage {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue("ids", filmsIds);
         String sqlQuery = "SELECT MOVIE_ID, USER_ID\n" +
-                " FROM MOVIES_LIKES WHERE MOVIE_ID in (:ids)";
+                "FROM MOVIES_LIKES WHERE MOVIE_ID in (:ids)";
         SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate).queryForRowSet(sqlQuery, parameters);
 
         while (rowSet.next()) {

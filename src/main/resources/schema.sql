@@ -1,17 +1,18 @@
-DROP TABLE IF EXISTS  movies_genres;
-DROP TABLE IF EXISTS  MOVIES_LIKES;
-DROP TABLE IF EXISTS genres;
-DROP TABLE IF EXISTS USER_RELATIONS;
 DROP TABLE IF EXISTS reviews_estimations;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_movie_unique;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_user_not_null;
 ALTER TABLE IF EXISTS reviews DROP CONSTRAINT reviews_movie_not_null;
-DROP TABLE IF EXISTS reviews;
-drop table if exists users;
-drop table if exists movies_directors;
-drop table if exists directors;
-drop table if exists movies;
-drop table if exists mpa_rating;
+DROP TABLE reviews IF EXISTS CASCADE;
+drop table mpa_rating IF EXISTS CASCADE;
+drop table genres IF EXISTS CASCADE;
+drop table directors IF EXISTS CASCADE;
+drop table movies IF EXISTS CASCADE;
+drop table movies_directors IF EXISTS CASCADE;
+drop table movies_genres IF EXISTS CASCADE;
+drop table users IF EXISTS CASCADE;
+drop table user_relations IF EXISTS CASCADE;
+drop table movies_likes IF EXISTS CASCADE;
+drop table feed IF EXISTS CASCADE;
 
 CREATE TABLE IF NOT EXISTS mpa_rating (
     rating_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -35,7 +36,7 @@ CREATE TABLE IF NOT EXISTS movies (
     description VARCHAR DEFAULT '',
     release_date DATE,
     duration INT,
-    rating INT references mpa_rating(rating_id)
+    rating INT references mpa_rating(rating_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS movies_directors (
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS movies_directors (
 );
 
 CREATE TABLE IF NOT EXISTS movies_genres (
-    movie_id INT REFERENCES movies(movie_id),
+    movie_id INT REFERENCES movies(movie_id) ON DELETE CASCADE,
     genre_id INT REFERENCES genres(genre_id),
     PRIMARY KEY (movie_id, genre_id)
 );
@@ -59,16 +60,25 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS user_relations (
-    requester_id INT REFERENCES users(user_id),
-    approver_id INT REFERENCES users(user_id),
+    requester_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+    approver_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     accepted boolean NOT NULL DEFAULT FALSE,
     PRIMARY KEY (requester_id, approver_id)
 );
 
 CREATE TABLE IF NOT EXISTS movies_likes (
-    movie_id INT REFERENCES movies(movie_id),
-    user_id INT REFERENCES users(user_id),
+    movie_id INT REFERENCES movies(movie_id) ON DELETE CASCADE,
+    user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
     PRIMARY KEY (movie_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS feed (
+	event_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	event_time TIMESTAMP WITH TIME ZONE DEFAULT CURDATE(),
+	user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+	event_type VARCHAR NOT NULL,
+	operation VARCHAR NOT NULL,
+	entity_id INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS reviews

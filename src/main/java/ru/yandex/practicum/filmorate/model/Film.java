@@ -9,9 +9,7 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Data
 public class Film {
@@ -37,4 +35,5 @@ public class Film {
                 "duration", duration,
                 "rating", mpa == null ? 0 : mpa.getId());
     }
+
 }
