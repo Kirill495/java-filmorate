@@ -3,8 +3,7 @@ package ru.yandex.practicum.filmorate.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -20,7 +20,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ru.yandex.practicum.filmorate.dao.impl.DirectorDaoImpl;
+import ru.yandex.practicum.filmorate.dao.impl.FeedDaoImpl;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.DirectorService;
+import ru.yandex.practicum.filmorate.service.FeedService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -58,8 +62,11 @@ class FilmControllerTest {
 
         FilmStorage filmStorage = new InMemoryFilmStorage();
         UserStorage userStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(userStorage);
-        FilmService filmService = new FilmService(filmStorage, userService);
+        UserService userService = new UserService(userStorage, new FeedService(new FeedDaoImpl(new JdbcTemplate())));
+        DirectorDaoImpl directorStorage = new DirectorDaoImpl(new JdbcTemplate());
+        DirectorService directorService = new DirectorService(directorStorage);
+        FeedService feedService = new FeedService(new FeedDaoImpl(new JdbcTemplate()));
+        FilmService filmService = new FilmService(filmStorage, userService, directorService, feedService);
         controller = new FilmController(filmService);
 
     }
@@ -67,12 +74,12 @@ class FilmControllerTest {
     @Test
     void createCorrectFilmShouldReturnTheSameFilmWithIDAndSaveFilmToStorage() {
         Film returnedFilm = controller.addFilm(film);
-        assertSame(film.getName(), returnedFilm.getName());
-        assertSame(film.getDuration(), returnedFilm.getDuration());
-        assertSame(film.getReleaseDate(), returnedFilm.getReleaseDate());
-        assertNotEquals(0, returnedFilm.getId());
+        Assertions.assertSame(film.getName(), returnedFilm.getName());
+        Assertions.assertSame(film.getDuration(), returnedFilm.getDuration());
+        Assertions.assertSame(film.getReleaseDate(), returnedFilm.getReleaseDate());
+        Assertions.assertNotEquals(0, returnedFilm.getId());
         List<Film> films = controller.getFilms();
-        assertEquals(returnedFilm, films.get(films.size() - 1));
+        Assertions.assertEquals(returnedFilm, films.get(films.size() - 1));
     }
 
     @Test
@@ -152,10 +159,10 @@ class FilmControllerTest {
     @Test
     void getFilmsMethodShouldReturnListOfFilms() {
         List<Film> filmsBefore = controller.getFilms();
-        assertTrue(filmsBefore.isEmpty());
+        Assertions.assertTrue(filmsBefore.isEmpty());
         controller.addFilm(film);
         List<Film> filmsAfter = controller.getFilms();
-        assertEquals(1, filmsAfter.size() - filmsBefore.size());
+        Assertions.assertEquals(1, filmsAfter.size() - filmsBefore.size());
     }
 
     @Test
@@ -168,8 +175,8 @@ class FilmControllerTest {
         newFilm.setDuration(3600);
         newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
         Film returnedFilm = controller.updateFilm(newFilm);
-        assertEquals(newFilm, returnedFilm);
-        assertEquals(newFilm, controller.getFilms().get(0));
+        Assertions.assertEquals(newFilm, returnedFilm);
+        Assertions.assertEquals(newFilm, controller.getFilms().get(0));
     }
 
     @Test

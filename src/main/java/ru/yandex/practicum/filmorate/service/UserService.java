@@ -3,8 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Feed;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserRelation;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -17,11 +20,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
+    private final FeedService feedService;
     private final UserStorage storage;
 
     @Autowired
-    public UserService(@Qualifier("UserDbStorage") UserStorage storage) {
+    public UserService(@Qualifier("UserDbStorage") UserStorage storage, FeedService feedService) {
         this.storage = storage;
+        this.feedService = feedService;
     }
 
     public User addUser(User user) {
@@ -50,6 +55,11 @@ public class UserService {
         return user;
     }
 
+    public List<Feed> getFeed(int userId) {
+        getUser(userId);
+        return feedService.getEvents(userId);
+    }
+
     public void addFriend(int userId, int friendId) {
         User user = getUserInner(userId);
         User friend = getUserInner(friendId);
@@ -59,9 +69,9 @@ public class UserService {
         if (relations.stream().anyMatch(counterRequestIsAlreadySent)) {
             // запрос уже был отправлен с противоположной стороны
             storage.updateUserRelations(user, friend, true);
-        }
-        if (relations.stream().noneMatch(requestIsAlreadySent)) {
+        } else if (relations.stream().noneMatch(requestIsAlreadySent)) {
             storage.updateUserRelations(user, friend, false);
+            feedService.postEvent(userId, friend, Operation.ADD);
         }
     }
 
@@ -69,20 +79,21 @@ public class UserService {
         User user = getUserInner(userId);
         User friend = getUserInner(friendId);
         storage.removeUserRelations(user, friend);
+        feedService.postEvent(userId, friend, Operation.REMOVE);
     }
 
     public List<User> getFriends(int id) {
         User user = getUserInner(id);
-        return user.getRelations().stream().filter(rel -> (rel.isAccepted() || rel.getApproverId() == id))
-                .map(r -> ((r.getApproverId() == id ? r.getRequesterId() : r.getApproverId())))
-                .map(storage::getUser)
+        List<Integer> friendsIds = user.getRelations().stream()
+                .filter(rel -> (rel.isAccepted() || rel.getRequesterId() == id))
+                .map(r -> ((r.getRequesterId() == id ? r.getApproverId() : r.getRequesterId())))
                 .collect(Collectors.toList());
+        return storage.getUsers(friendsIds);
     }
 
     public List<User> getCommonFriends(int id, int otherId) {
         User mainUser = getUserInner(id);
         User otherUser = getUserInner(otherId);
-
         return storage.getCommonFriends(mainUser, otherUser);
     }
 
@@ -98,5 +109,10 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+    }
+
+    public boolean deleteUser(@PathVariable int userId) {
+        getUserInner(userId);
+        return storage.deleteUser(userId);
     }
 }
