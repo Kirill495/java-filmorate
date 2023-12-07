@@ -26,6 +26,7 @@ public class Film {
     private Set<Integer> likes = new HashSet<>();
     private Set<Genre> genres = new HashSet<>();
     private MPA mpa;
+    private Set<Director> directors = new HashSet<>();
 
     public Map<String, Object> toMap() {
         return Map.of("title", name,
@@ -34,4 +35,5 @@ public class Film {
                 "duration", duration,
                 "rating", mpa == null ? 0 : mpa.getId());
     }
+
 }
