@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +10,6 @@ import ru.yandex.practicum.filmorate.service.MPAService;
 
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping(value = "/mpa")
 public class MPAController {
@@ -23,14 +21,12 @@ public class MPAController {
     }
 
     @GetMapping
-    public List<MPA> getAllRatings() {
-        log.info("Getting all ratings");
+    public List<MPA> getAllGenres() {
         return mpaService.getAllRating();
     }
 
     @GetMapping("/{id}")
     public MPA getRatingById(@PathVariable("id") int id) {
-        log.info("Getting rating with id:{}", id);
         return mpaService.getRatingById(id);
     }
 }
