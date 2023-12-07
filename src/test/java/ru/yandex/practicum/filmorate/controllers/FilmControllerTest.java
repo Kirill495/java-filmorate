@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -20,17 +19,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ru.yandex.practicum.filmorate.dao.impl.DirectorDaoImpl;
-import ru.yandex.practicum.filmorate.dao.impl.FeedDaoImpl;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.DirectorService;
-import ru.yandex.practicum.filmorate.service.FeedService;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -44,31 +33,19 @@ class FilmControllerTest {
 
     @Autowired
     private MockMvc mvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
+    @Autowired
     private FilmController controller;
     private Film film;
 
     @BeforeEach
     void setUp() {
-
         film = new Film();
         film.setName("ААА");
         film.setDuration(100);
         film.setDescription("");
         film.setReleaseDate(LocalDate.now());
-
-        FilmStorage filmStorage = new InMemoryFilmStorage();
-        UserStorage userStorage = new InMemoryUserStorage();
-        UserService userService = new UserService(userStorage, new FeedService(new FeedDaoImpl(new JdbcTemplate())));
-        DirectorDaoImpl directorStorage = new DirectorDaoImpl(new JdbcTemplate());
-        DirectorService directorService = new DirectorService(directorStorage);
-        FeedService feedService = new FeedService(new FeedDaoImpl(new JdbcTemplate()));
-        FilmService filmService = new FilmService(filmStorage, userService, directorService, feedService);
-        controller = new FilmController(filmService);
-
     }
 
     @Test
