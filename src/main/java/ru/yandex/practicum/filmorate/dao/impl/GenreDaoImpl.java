@@ -1,8 +1,9 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.exceptions.genre.GenreNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateGenreFromDatabaseResultSetException;
@@ -12,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-@Component
+@Repository
 public class GenreDaoImpl implements GenreDao {
 
     private static final String GET_GENRE_BY_ID_QUERY = "SELECT genre_id, title FROM genres WHERE genre_id = ?";
@@ -50,4 +51,5 @@ public class GenreDaoImpl implements GenreDao {
         }
         return genre;
     }
+
 }
