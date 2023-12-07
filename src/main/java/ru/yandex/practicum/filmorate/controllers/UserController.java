@@ -11,10 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ru.yandex.practicum.filmorate.model.Feed;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -26,35 +23,27 @@ import java.util.List;
 public class UserController {
 
     private final UserService service;
-    private final RecommendationsService recommendationsService;
 
     @Autowired
-    public UserController(UserService service, RecommendationsService recommendationsService) {
+    public UserController(UserService service) {
         this.service = service;
-        this.recommendationsService = recommendationsService;
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        log.info("Create new user with id:{}", user.getId());
+        log.debug("create new user: {}", user);
         return service.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        log.info("Update user with id:{}", user.getId());
+        log.debug("update user {}", user);
         return service.updateUser(user);
-    }
-
-    @DeleteMapping("/{userId}")
-    public boolean deleteUser(@PathVariable int userId) {
-        log.info("Delete user with id:{}", userId);
-        return service.deleteUser(userId);
     }
 
     @GetMapping
     public List<User> getUsers() {
-        log.info("Get all users");
+        log.trace("get all users");
         return service.getUsers();
     }
 
@@ -65,38 +54,21 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("Adding friend with id:{} to user with id:{}", friendId, id);
-        service.addFriend(id, friendId);
+        service.addFriend(friendId, id);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
-        log.info("Deleting friend with id:{} from user with id:{}", friendId, id);
         service.deleteFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
     public List<User> getFriends(@PathVariable int id) {
-        log.info("Getting friends for user with id:{}", id);
         return service.getFriends(id);
-    }
-
-    @GetMapping("/{id}/recommendations")
-    public List<Film> getRecommendations(@PathVariable int id) {
-        log.info("Getting recommendations for user with id:{}", id);
-        return recommendationsService.getRecommendations(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
-        log.info("Getting common friends for user with id:{} and otherId:{}", id, otherId);
         return service.getCommonFriends(id, otherId);
     }
-
-    @GetMapping("/{id}/feed")
-    public List<Feed> getFeed(@PathVariable("id") int userId) {
-        log.info("Getting feed for user with id:{}", userId);
-        return service.getFeed(userId);
-    }
-
 }
