@@ -16,6 +16,9 @@ import java.util.List;
 @Repository
 public class MPADaoImpl implements MPADao {
     private final JdbcTemplate jdbcTemplate;
+    private static final String GET_MPA_BY_ID_QUERY =
+            "SELECT rating_id, title, description FROM MPA_RATING WHERE rating_id = ?";
+    private static final String GET_ALL_MPA_QUERY = "SELECT rating_id, title, description FROM MPA_RATING";
 
     @Autowired
     public MPADaoImpl(JdbcTemplate jdbcTemplate) {
@@ -24,9 +27,8 @@ public class MPADaoImpl implements MPADao {
 
     @Override
     public MPA findMPARatingById(int id) {
-        String sqlQuery = "SELECT rating_id, title, description FROM MPA_RATING WHERE rating_id = ?";
         try {
-            return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, id);
+            return jdbcTemplate.queryForObject(GET_MPA_BY_ID_QUERY, this::mapRowToRating, id);
         } catch (EmptyResultDataAccessException e) {
             throw new MPANotFoundException(id);
         }
@@ -34,8 +36,7 @@ public class MPADaoImpl implements MPADao {
 
     @Override
     public List<MPA> findAllMPARating() {
-        String sqlQuery = "SELECT rating_id, title, description FROM MPA_RATING";
-        return jdbcTemplate.query(sqlQuery, this::mapRowToRating);
+        return jdbcTemplate.query(GET_ALL_MPA_QUERY, this::mapRowToRating);
     }
 
     private MPA mapRowToRating(ResultSet resultSet, int rowNum) {
