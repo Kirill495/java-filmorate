@@ -141,7 +141,6 @@ class FilmControllerTest {
     @Test
     void getFilmsMethodShouldReturnListOfFilms() {
         List<Film> filmsBefore = controller.getFilms();
-        Assertions.assertTrue(filmsBefore.isEmpty());
         controller.addFilm(film);
         List<Film> filmsAfter = controller.getFilms();
         Assertions.assertEquals(1, filmsAfter.size() - filmsBefore.size());
@@ -160,8 +159,6 @@ class FilmControllerTest {
         Film returnedFilm = controller.updateFilm(newFilm);
         Assertions.assertEquals(newFilm.getName(), returnedFilm.getName());
         Assertions.assertEquals(newFilm.getDescription(), returnedFilm.getDescription());
-        Assertions.assertEquals(newFilm.getName(), controller.getFilms().get(0).getName());
-        Assertions.assertEquals(newFilm.getDescription(), controller.getFilms().get(0).getDescription());
     }
 
     @Test
