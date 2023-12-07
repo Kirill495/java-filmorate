@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.db.CreateUserFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -20,37 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Repository
+@Component
 @Qualifier("UserDbStorage")
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private static final String GET_LIST_OF_USERS_QUERY =
-            "SELECT\n" +
-            "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
-            "FROM \n" +
-            "     USERS WHERE USER_ID in (:user_ids);";
-    private static final String GET_USER_BY_ID_QUERY =
-            "SELECT\n" +
-            "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
-            "FROM\n" +
-            "     USERS\n" +
-            "WHERE\n" +
-            "    USER_ID = :user_id;";
-    private static final String GET_ALL_USERS_QUERY =
-            "SELECT\n" +
-            "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
-            "FROM \n" +
-            "     USERS;";
-    private static final String UPDATE_USER_QUERY =
-            "UPDATE USERS\n" +
-            "    SET \n" +
-            "        email = ?,\n" +
-            "        login = ?,\n" +
-            "        name = ?,\n" +
-            "        birthday = ?\n" +
-            "    WHERE \n" +
-            "        USER_ID = ?;";
 
     @Override
     public List<User> getCommonFriends(User mainUser, User otherUser) {
@@ -61,8 +34,8 @@ public class UserDbStorage implements UserStorage {
                 "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
                 "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
                 "WHERE\n" +
-                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id AND USER_RELATIONS_APPROVER.ACCEPTED\n" +
-                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id)\n" +
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :first_user_id\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :first_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)\n" +
                 "INTERSECT \n" +
                 "SELECT\n" +
                 "    users.USER_ID, users.email, users.login, users.name, users.birthday\n" +
@@ -71,13 +44,13 @@ public class UserDbStorage implements UserStorage {
                 "        left join USER_RELATIONS AS USER_RELATIONS_APPROVER ON USERS.USER_ID = USER_RELATIONS_APPROVER.REQUESTER_ID\n" +
                 "        left join USER_RELATIONS AS USER_RELATIONS_REQUESTER ON USERS.USER_ID = USER_RELATIONS_REQUESTER.APPROVER_ID \n" +
                 "WHERE\n" +
-                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id AND USER_RELATIONS_APPROVER.ACCEPTED\n" +
-                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id)";
+                "    (USER_RELATIONS_APPROVER.APPROVER_ID = :second_user_id\n" +
+                "    OR USER_RELATIONS_REQUESTER.REQUESTER_ID = :second_user_id AND USER_RELATIONS_REQUESTER.ACCEPTED)";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
                 .query(
-                    sqlQuery,
-                    Map.of("first_user_id", mainUser.getId(), "second_user_id", otherUser.getId()),
-                    this::createNewUser);
+                        sqlQuery,
+                        Map.of("first_user_id", mainUser.getId(), "second_user_id", otherUser.getId()),
+                        (resultSet, rowNum) -> (createNewUser(resultSet)));
     }
 
     @Override
@@ -127,32 +100,46 @@ public class UserDbStorage implements UserStorage {
         }
         DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
         jdbcTemplate.update(
-                UPDATE_USER_QUERY,
+                "UPDATE USERS\n" +
+                        "    SET \n" +
+                        "        email = ?,\n" +
+                        "        login = ?,\n" +
+                        "        name = ?,\n" +
+                        "        birthday = ?\n" +
+                        "    WHERE \n" +
+                        "        USER_ID = ?;",
                 user.getEmail(), user.getLogin(), user.getName(), user.getBirthday().format(formatter), user.getId());
         return getUser(user.getId());
     }
 
     @Override
     public List<User> getUsers() {
-        return jdbcTemplate.query(GET_ALL_USERS_QUERY, this::createNewUser);
-    }
-
-    @Override
-    public List<User> getUsers(List<Integer> ids) {
-        return new NamedParameterJdbcTemplate(jdbcTemplate)
-                .query(GET_LIST_OF_USERS_QUERY, Map.of("user_ids", ids), this::createNewUser);
+        String sqlQuery =
+                "SELECT\n" +
+                        "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
+                        "FROM \n" +
+                        "     USERS;";
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewUser(rs)));
     }
 
     @Override
     public User getUser(int id) {
+        String sqlQuery =
+                "SELECT\n" +
+                        "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
+                        "FROM\n" +
+                        "     USERS\n" +
+                        "WHERE\n" +
+                        "    USER_ID = :user_id\n" +
+                        "LIMIT 1;";
         return new NamedParameterJdbcTemplate(jdbcTemplate)
-                .query(GET_USER_BY_ID_QUERY, Map.of("user_id", id), this::createNewUser)
+                .query(sqlQuery, Map.of("user_id", id), (rs, rowNum) -> (createNewUser(rs)))
                 .stream()
                 .findAny()
                 .orElse(null);
     }
 
-    private User createNewUser(ResultSet resultSet, int rowNum) {
+    private User createNewUser(ResultSet resultSet) {
         User user = new User();
 
         try {
@@ -181,10 +168,5 @@ public class UserDbStorage implements UserStorage {
                     relation.setApproverId(rs.getInt("approver_id"));
                     return relation;
                 }));
-    }
-
-    public boolean deleteUser(@PathVariable int userId) {
-        String sqlQuery = "DELETE FROM users WHERE user_id=?;";
-        return jdbcTemplate.update(sqlQuery, userId) > 0;
     }
 }

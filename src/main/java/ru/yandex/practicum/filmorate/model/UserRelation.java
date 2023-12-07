@@ -9,4 +9,5 @@ public class UserRelation {
     private int requesterId;
     private int approverId;
     private boolean accepted;
+
 }

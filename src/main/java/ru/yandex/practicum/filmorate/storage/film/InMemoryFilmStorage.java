@@ -7,18 +7,17 @@ import ru.yandex.practicum.filmorate.exceptions.film.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @Qualifier("InMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
-    private static final String UNSUPPORTED_OPERATION =
-            "Этот метод невозможно вызвать через InMemoryFilmStorage, попробуйте через FilmDbStorage";
 
     @Override
     public Film addFilm(Film film) {
@@ -49,43 +48,17 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getMostPopularFilms(int count) {
-        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
-    }
-
-    @Override
-    public List<Film> getFilmsBySearchParameters(String query, Set<String> queryParameters) {
-        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
-    }
-
-    @Override
-    public List<Film> getSortedFilms(int id, String sortBy) {
-        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
+    public List<Film> getTheMostPopularFilms(int count) {
+        return getFilms()
+                .stream()
+                .sorted(Comparator.comparingInt(film -> -film.getLikes().size()))
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     @Override
     public Film getFilm(int id) {
         log.trace("Storage. Получение фильма по идентификатору {}", id);
         return films.get(id);
-    }
-
-    @Override
-    public boolean deleteFilm(int filmId) {
-        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
-    }
-
-    @Override
-    public List<Film> getMostPopularFilmsFilterAll(Integer limit, Integer genreId, Integer year) {
-        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
-    }
-
-    @Override
-    public List<Film> getCommonFilms(int userId, int friendId) {
-        throw new UnsupportedOperationException(UNSUPPORTED_OPERATION);
-    }
-
-    @Override
-    public List<Film> getRecommendations(int userId) {
-        return new ArrayList<>();
     }
 }

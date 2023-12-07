@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,26 +13,16 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.yandex.practicum.filmorate.dao.impl.FeedDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.user.UserDataValidationException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FeedService;
-import ru.yandex.practicum.filmorate.service.RecommendationsService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -53,10 +45,8 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         UserStorage storage = new InMemoryUserStorage();
-        UserService service = new UserService(storage, new FeedService(new FeedDaoImpl(new JdbcTemplate())));
-        FilmStorage filmStorage = new InMemoryFilmStorage();
-        RecommendationsService recommendationsService = new RecommendationsService(filmStorage);
-        controller = new UserController(service, recommendationsService);
+        UserService service = new UserService(storage);
+        controller = new UserController(service);
 
         user = new User();
         user.setName("Username");
@@ -108,7 +98,7 @@ class UserControllerTest {
     @Test
     void addUserWithEmptyLoginShouldThrowException() throws Exception {
         user.setLogin("");
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -121,7 +111,7 @@ class UserControllerTest {
     @Test
     void addUserWithNullLoginShouldThrowException() throws Exception {
         user.setLogin(null);
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -134,7 +124,7 @@ class UserControllerTest {
     @Test
     void addUserWithLoginWithWhitespacesShouldThrowException() throws Exception {
         user.setLogin("l o g i n");
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -147,7 +137,7 @@ class UserControllerTest {
     @Test
     void addUserWithEmailWithout_a_ShouldThrowException() throws Exception {
         user.setEmail("email");
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -160,7 +150,7 @@ class UserControllerTest {
     @Test
     void addUserWithBlankEmailShouldThrowException() throws Exception {
         user.setEmail("  ");
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -173,7 +163,7 @@ class UserControllerTest {
     @Test
     void addUserWithNullEmailShouldThrowException() throws Exception {
         user.setEmail(null);
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
@@ -186,7 +176,7 @@ class UserControllerTest {
     @Test
     void addUserWithIncorrectBirthdayShouldThrowException() throws Exception {
         user.setBirthday(LocalDate.now().plusDays(1));
-        mvc.perform(MockMvcRequestBuilders.post("/users")
+        mvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user)))
                 .andExpect(status().isBadRequest())
