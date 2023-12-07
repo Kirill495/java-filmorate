@@ -55,7 +55,7 @@ public class ReviewDbStorage implements ReviewStorage {
             "WHERE %s\n" +
             "GROUP BY\n" +
             "    R.REVIEW_ID\n" +
-            "ORDER BY useful DESC, id \n" +
+            "ORDER BY SUM(IFNULL(RE.MARK, 0)) DESC, id ASC\n" +
             "LIMIT %d;";
 
     public ReviewDbStorage(JdbcTemplate jdbcTemplate) {
@@ -154,7 +154,7 @@ public class ReviewDbStorage implements ReviewStorage {
                     .withContent(resultSet.getString("content"))
                     .withFilmId(resultSet.getInt("movieId"))
                     .withUserId(resultSet.getInt("userId"))
-                    .withUseful(resultSet.getInt("isPositive"))
+                    .withUseful(resultSet.getInt("useful"))
                     .withIsPositive(resultSet.getBoolean("isPositive"))
                     .build();
         } catch (SQLException e) {
