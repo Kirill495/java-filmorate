@@ -17,7 +17,7 @@ import java.util.Objects;
 public class FeedDaoImpl implements FeedDao {
     private final JdbcTemplate jdbcTemplate;
     private static final String INSERT_NEW_FEED_QUERY =
-            "INSERT INTO feed (event_time, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO feed (user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?)";
     private static final String GET_USER_FEEDS_QUERY =
             "SELECT f.event_id, f.event_time, f.user_id, f.event_type, f.operation, f.entity_id " +
             "FROM feed AS f " +
