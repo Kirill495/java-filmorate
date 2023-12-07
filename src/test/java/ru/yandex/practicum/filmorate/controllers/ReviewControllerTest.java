@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -27,7 +26,7 @@ import java.util.List;
 public class ReviewControllerTest {
 
     @Autowired
-    @Qualifier("FilmDbStorage") private final FilmStorage filmStorage ;
+    @Qualifier("FilmDbStorage") private final FilmStorage filmStorage;
     @Autowired
     private final ReviewService reviewService;
     @Autowired

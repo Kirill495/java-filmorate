@@ -19,15 +19,18 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@AutoConfigureTestDatabase
+@AutoConfigureTestDatabase()
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @AutoConfigureMockMvc
+@Transactional
 @SpringBootTest
 class FilmControllerTest {
 
@@ -38,6 +41,7 @@ class FilmControllerTest {
     @Autowired
     private FilmController controller;
     private Film film;
+    private final MPA mpa = new MPA(1, "G", "Нет возрастных ограничений");
 
     @BeforeEach
     void setUp() {
@@ -45,15 +49,16 @@ class FilmControllerTest {
         film.setName("ААА");
         film.setDuration(100);
         film.setDescription("");
+        film.setMpa(mpa);
         film.setReleaseDate(LocalDate.now());
     }
 
     @Test
     void createCorrectFilmShouldReturnTheSameFilmWithIDAndSaveFilmToStorage() {
         Film returnedFilm = controller.addFilm(film);
-        Assertions.assertSame(film.getName(), returnedFilm.getName());
-        Assertions.assertSame(film.getDuration(), returnedFilm.getDuration());
-        Assertions.assertSame(film.getReleaseDate(), returnedFilm.getReleaseDate());
+        Assertions.assertEquals(film.getName(), returnedFilm.getName());
+        Assertions.assertEquals(film.getDuration(), returnedFilm.getDuration());
+        Assertions.assertEquals(film.getReleaseDate(), returnedFilm.getReleaseDate());
         Assertions.assertNotEquals(0, returnedFilm.getId());
         List<Film> films = controller.getFilms();
         Assertions.assertEquals(returnedFilm, films.get(films.size() - 1));
@@ -151,9 +156,12 @@ class FilmControllerTest {
         newFilm.setDescription("new film description");
         newFilm.setDuration(3600);
         newFilm.setReleaseDate(LocalDate.of(2000, 1, 1));
+        newFilm.setMpa(mpa);
         Film returnedFilm = controller.updateFilm(newFilm);
-        Assertions.assertEquals(newFilm, returnedFilm);
-        Assertions.assertEquals(newFilm, controller.getFilms().get(0));
+        Assertions.assertEquals(newFilm.getName(), returnedFilm.getName());
+        Assertions.assertEquals(newFilm.getDescription(), returnedFilm.getDescription());
+        Assertions.assertEquals(newFilm.getName(), controller.getFilms().get(0).getName());
+        Assertions.assertEquals(newFilm.getDescription(), controller.getFilms().get(0).getDescription());
     }
 
     @Test

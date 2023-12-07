@@ -25,5 +25,4 @@ public class User {
     @PastOrPresent(message = "Дата рождения не может быть больше текущей даты")
     private LocalDate birthday;
     private Set<UserRelation> relations = new HashSet<>();
-
 }
