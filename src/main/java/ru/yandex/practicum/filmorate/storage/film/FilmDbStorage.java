@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -18,12 +17,10 @@ import ru.yandex.practicum.filmorate.model.MPA;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.function.Function.identity;
 
 @Repository
 @Qualifier("FilmDbStorage")
@@ -273,7 +270,7 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             throw new RequestSqlException("Неверный запрос. Запросить сортировку можно по параметрам year или likes");
         }
-        List<Film> films = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> (createNewFilm(rs)), id);
+        List<Film> films = jdbcTemplate.query(sqlQuery, this::createNewFilm, id);
 
         fillInGenres(films);
         fillInLikes(films);
@@ -287,6 +284,7 @@ public class FilmDbStorage implements FilmStorage {
                 .withTableName("movies")
                 .usingGeneratedKeyColumns("movie_id")
                 .executeAndReturnKey(film.toMap()).intValue();
+        film.setId(filmId);
         updateFilmGenres(film, filmId);
         updateLikes(film.getLikes(), filmId);
         updateFilmDirectors(film, filmId);
@@ -299,7 +297,6 @@ public class FilmDbStorage implements FilmStorage {
         if (getFilm(film.getId()) == null) {
             throw new FilmNotFoundException(film.getId());
         }
-
         jdbcTemplate.update(UPDATE_FILM,
                 film.getName(),
                 film.getDescription(),
@@ -316,7 +313,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getFilms() {
 
-        List<Film> films = jdbcTemplate.query(FIND_FILM_BY_ID, (rs, rowNum) -> (createNewFilm(rs)));
+        List<Film> films = jdbcTemplate.query(FIND_FILM_BY_ID, this::createNewFilm);
         fillInGenres(films);
         fillInLikes(films);
         fillInDirectors(films);
@@ -325,7 +322,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getRecommendations(int userId) {
-        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(RECOMMENDATIONS_FILM_BY_USER_ID, Map.of("user_id", userId), (rs, rowNum) -> createNewFilm(rs));
+        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(RECOMMENDATIONS_FILM_BY_USER_ID, Map.of("user_id", userId), this::createNewFilm);
         fillInGenres(films);
         fillInLikes(films);
         return films;
@@ -334,7 +331,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film getFilm(int id) {
 
-        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(GET_FILM_BY_ID, Map.of("movie_id", id), (rs, rowNum) -> createNewFilm(rs));
+        List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate).query(GET_FILM_BY_ID, Map.of("movie_id", id), this::createNewFilm);
         if (films.size() == 0) {
             return null;
         }
@@ -347,7 +344,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getFilms(List<Integer> ids) {
 
         List<Film> films = new NamedParameterJdbcTemplate(jdbcTemplate)
-                .query(GET_FILMS_BY_LIST_IDS, Map.of("movie_ids", ids), (rs, rowNum) -> createNewFilm(rs));
+                .query(GET_FILMS_BY_LIST_IDS, Map.of("movie_ids", ids), this::createNewFilm);
         if (films.size() == 0) {
             return null;
         }
@@ -370,10 +367,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-
-        return jdbcTemplate.query(GET_COMMON_FILMS, (rs, rowNum) -> (createNewFilm(rs)), userId, friendId);
+        return jdbcTemplate.query(GET_COMMON_FILMS, this::createNewFilm, userId, friendId);
     }
-
 
     @Override
     public boolean deleteFilm(int filmId) {
@@ -387,41 +382,54 @@ public class FilmDbStorage implements FilmStorage {
             if (year == null && genreId == null) {
                 return getMostPopularFilms(limit);
             } else if (year != null && genreId == null) {
-                films = jdbcTemplate.query(POPULAR_FILMS_BY_YEAR, (rs, rowNum) -> (createNewFilm(rs)), year, limit);
-            } else if (year == null && genreId != null) {
-                films = jdbcTemplate.query(POPULAR_FILMS_BY_GENRE, (rs, rowNum) -> (createNewFilm(rs)), genreId, limit);
+                films = jdbcTemplate.query(POPULAR_FILMS_BY_YEAR, this::createNewFilm, year, limit);
+            } else if (year == null) {
+                films = jdbcTemplate.query(POPULAR_FILMS_BY_GENRE, this::createNewFilm, genreId, limit);
             } else {
-                films = jdbcTemplate.query(POPULAR_FILMS_BY_YEAR_AND_GENRE, (rs, rowNum) -> (createNewFilm(rs)), year, genreId, limit);
+                films = jdbcTemplate.query(POPULAR_FILMS_BY_YEAR_AND_GENRE, this::createNewFilm, year, genreId, limit);
             }
-
             fillInGenres(films);
             fillInLikes(films);
             fillInDirectors(films);
             return films;
         } catch (DataAccessException e) {
-            return new ArrayList<>();
+            return List.of();
         }
     }
 
-
     private void updateFilmGenres(Film film, int filmId) {
         jdbcTemplate.update(DELETE_MOVIES_GENRES, filmId);
-        film.getGenres()
-                .forEach(genre -> jdbcTemplate.update(ADD_MOVIES_GENRES, filmId, genre.getId()));
+        jdbcTemplate.batchUpdate(ADD_MOVIES_GENRES, film.getGenres(), film.getGenres().size(),
+                (ps, argument) -> {
+                        ps.setInt(1, filmId);
+                        ps.setInt(2, argument.getId());
+                    }
+                );
     }
 
     private void updateLikes(Set<Integer> likes, int filmId) {
         jdbcTemplate.update(DELETE_MOVIES_LIKES, filmId);
-        likes.forEach(userId -> jdbcTemplate.update(ADD_MOVIES_LIKES, filmId, userId));
+        jdbcTemplate.batchUpdate(ADD_MOVIES_LIKES, likes, likes.size(),
+                (ps, argument) -> {
+                        ps.setInt(1, filmId);
+                        ps.setInt(2, argument);
+                    }
+                );
     }
 
     private void updateFilmDirectors(Film film, int filmId) {
         jdbcTemplate.update(DELETE_MOVIES_DIRECTORS, filmId);
-        film.getDirectors()
-                .forEach(director -> jdbcTemplate.update(ADD_MOVIES_DIRECTORS, filmId, director.getId()));
+        jdbcTemplate.batchUpdate(ADD_MOVIES_DIRECTORS,
+                film.getDirectors(),
+                film.getDirectors().size(),
+                (ps, argument) -> {
+                        ps.setInt(1, filmId);
+                        ps.setInt(2, argument.getId());
+                    }
+                );
     }
 
-    private Film createNewFilm(ResultSet resultSet) {
+    private Film createNewFilm(ResultSet resultSet, int rowNum) {
         MPA ratingItem = null;
         try {
             if (resultSet.getInt("rating_id") != 0) {
@@ -484,7 +492,7 @@ public class FilmDbStorage implements FilmStorage {
             throw new RuntimeException(e);
         }
         if (filmsIds.isEmpty()) {
-            return new ArrayList<>();
+            return List.of();
         }
         return getFilms(filmsIds)
                 .stream()
@@ -494,75 +502,63 @@ public class FilmDbStorage implements FilmStorage {
 
     private List<Film> getFilmsWithRating(int count) {
 
-        return jdbcTemplate.query(GET_FILMS_WITH_RATING, (rs, rowNum) -> (createNewFilm(rs)), count);
+        return jdbcTemplate.query(GET_FILMS_WITH_RATING, this::createNewFilm, count);
     }
 
     private List<Film> getFilmsWithoutRating(int count) {
 
-        return jdbcTemplate.query(GET_FILMS_WITHOUT_RATING, (rs, rowNum) -> (createNewFilm(rs)), count);
+        return jdbcTemplate.query(GET_FILMS_WITHOUT_RATING, this::createNewFilm, count);
     }
 
     private void fillInGenres(List<Film> films) {
-        List<Integer> filmsIds = films.stream()
-                .mapToInt(Film::getId).boxed()
-                .collect(Collectors.toList());
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("ids", filmsIds);
-
-        SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate).queryForRowSet(FILL_GENRES, parameters);
-
+        if (films.isEmpty()) {
+            return;
+        }
+        Map<Integer, Film> filmIds = films.stream().collect(Collectors.toMap(Film::getId, identity()));
+        SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate)
+                .queryForRowSet(FILL_GENRES, Map.of("ids", List.copyOf(filmIds.keySet())));
         while (rowSet.next()) {
             int movieId = rowSet.getInt("movie_id");
-            films.stream()
-                    .filter(film -> (film.getId() == movieId))
-                    .findFirst()
-                    .ifPresent(film -> {
-                        Genre genre = new Genre();
-                        genre.setId(rowSet.getInt("genre_id"));
-                        genre.setName(rowSet.getString("title"));
-                        film.getGenres().add(genre);
-                    });
+            if (filmIds.containsKey(movieId)) {
+                Film film = filmIds.get(movieId);
+                Genre genre = new Genre();
+                genre.setId(rowSet.getInt("genre_id"));
+                genre.setName(rowSet.getString("title"));
+                film.getGenres().add(genre);
+            }
         }
     }
 
     private void fillInLikes(List<Film> films) {
-        List<Integer> filmsIds = films.stream()
-                .mapToInt(Film::getId).boxed()
-                .collect(Collectors.toList());
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("ids", filmsIds);
-
-        SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate).queryForRowSet(FILL_LIKES, parameters);
-
+        if (films.isEmpty()) {
+            return;
+        }
+        Map<Integer, Film> filmIds = films.stream().collect(Collectors.toMap(Film::getId, identity()));
+        SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate)
+                .queryForRowSet(FILL_LIKES, Map.of("ids", List.copyOf(filmIds.keySet())));
         while (rowSet.next()) {
             int movieId = rowSet.getInt("movie_id");
-            films.stream()
-                    .filter(film -> (film.getId() == movieId))
-                    .findFirst()
-                    .ifPresent(film -> film.getLikes().add(rowSet.getInt("user_id")));
+            if (filmIds.containsKey(movieId)) {
+                filmIds.get(movieId).getLikes().add(rowSet.getInt("user_id"));
+            }
         }
     }
 
     private void fillInDirectors(List<Film> films) {
-        List<Integer> filmsIds = films.stream()
-                .mapToInt(Film::getId).boxed()
-                .collect(Collectors.toList());
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("ids", filmsIds);
-
-        SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate).queryForRowSet(FILL_DIRECTORS, parameters);
-
+        if (films.isEmpty()) {
+            return;
+        }
+        Map<Integer, Film> filmIds = films.stream().collect(Collectors.toMap(Film::getId, identity()));
+        SqlRowSet rowSet = new NamedParameterJdbcTemplate(jdbcTemplate)
+                .queryForRowSet(FILL_DIRECTORS, Map.of("ids", List.copyOf(filmIds.keySet())));
         while (rowSet.next()) {
             int movieId = rowSet.getInt("movie_id");
-            films.stream()
-                    .filter(film -> (film.getId() == movieId))
-                    .findFirst()
-                    .ifPresent(film -> {
-                        Director director = new Director();
-                        director.setId(rowSet.getInt("director_id"));
-                        director.setName(rowSet.getString("name"));
-                        film.getDirectors().add(director);
-                    });
+            if (filmIds.containsKey(movieId)) {
+                Director director = new Director();
+                director.setId(rowSet.getInt("director_id"));
+                director.setName(rowSet.getString("name"));
+                filmIds.get(movieId).getDirectors().add(director);
+            }
         }
     }
 }
