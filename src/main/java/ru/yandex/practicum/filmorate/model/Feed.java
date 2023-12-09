@@ -9,14 +9,14 @@ import javax.validation.constraints.NotNull;
 @Builder(setterPrefix = "with")
 public class Feed {
     @NotNull
-    Integer eventId;
-    Long timestamp;
+    private Integer eventId;
+    private Long timestamp;
     @NotNull
-    Integer userId;
+    private Integer userId;
     @NotNull
-    String eventType;
+    private String eventType;
     @NotNull
-    String operation;
+    private String operation;
     @NotNull
-    Integer entityId;
+    private Integer entityId;
 }

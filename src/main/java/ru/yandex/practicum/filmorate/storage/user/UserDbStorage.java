@@ -8,7 +8,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.PathVariable;
+
 import ru.yandex.practicum.filmorate.exceptions.db.CreateUserFromDatabaseResultSetException;
 import ru.yandex.practicum.filmorate.exceptions.user.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -30,6 +30,8 @@ import java.util.Set;
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final DateTimeFormatter USER_BIRTHDAY_FORMATTER =
+            new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
     private static final String GET_LIST_OF_USERS_QUERY =
             "SELECT\n" +
             "    USER_ID, EMAIL, LOGIN, NAME, BIRTHDAY\n" +
@@ -116,14 +118,13 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
-        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(con -> {
             PreparedStatement statement = con.prepareStatement(ADD_USER_QUERY, new String[]{"user_id"});
             statement.setString(1, user.getEmail());
             statement.setString(2, user.getLogin());
             statement.setString(3, user.getName());
-            statement.setString(4, user.getBirthday().format(formatter));
+            statement.setString(4, user.getBirthday().format(USER_BIRTHDAY_FORMATTER));
             return statement;
         }, keyHolder);
         user.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
@@ -138,15 +139,15 @@ public class UserDbStorage implements UserStorage {
         if (!set.next()) {
             throw new UserNotFoundException("Неизвестный идентификатор пользователя");
         }
-        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd").toFormatter();
         jdbcTemplate.update(
                 UPDATE_USER_QUERY,
-                user.getEmail(), user.getLogin(), user.getName(), user.getBirthday().format(formatter), user.getId());
+                user.getEmail(), user.getLogin(), user.getName(),
+                user.getBirthday().format(USER_BIRTHDAY_FORMATTER), user.getId());
         return getUser(user.getId());
     }
 
     @Override
-    public boolean deleteUser(@PathVariable int userId) {
+    public boolean deleteUser(int userId) {
         return jdbcTemplate.update(REMOVE_USER_QUERY, userId) > 0;
     }
 
